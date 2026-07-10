@@ -4,7 +4,7 @@ import os
 import json
 
 PORT = 3000
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'Dados salvos')
+DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'Dados salvos')
 DATA_FILE = os.path.join(DATA_DIR, 'data.json')
 
 # Garante que a pasta "Dados salvos" exista
@@ -56,7 +56,8 @@ class PCPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(404)
         self.end_headers()
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# Ajusta o diretório de trabalho para a raiz do projeto (uma pasta acima de local/)
+os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 socketserver.TCPServer.allow_reuse_address = True
 with socketserver.TCPServer(("", PORT), PCPRequestHandler) as httpd:

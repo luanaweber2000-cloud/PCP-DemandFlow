@@ -14,7 +14,7 @@ if %errorlevel% equ 0 (
     echo [INFO] Node.js detectado. Iniciando servidor...
     echo Abrindo o painel no seu navegador...
     start http://localhost:3000
-    node server.js
+    node local/server.js
     goto end
 )
 
@@ -25,7 +25,7 @@ if %errorlevel% equ 0 (
     echo Iniciando servidor Python...
     echo Abrindo o painel no seu navegador...
     start http://localhost:3000
-    python server.py
+    python local/server.py
     goto end
 )
 

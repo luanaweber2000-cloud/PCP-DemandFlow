@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'Dados salvos');
+const DATA_DIR = path.join(__dirname, '..', 'Dados salvos');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 // Garante que o diretório "Dados salvos" exista
@@ -79,9 +79,11 @@ const server = http.createServer((req, res) => {
     let filePath = req.url === '/' ? '/index.html' : req.url;
     filePath = filePath.split('?')[0].split('#')[0];
     
-    const fullPath = path.join(__dirname, filePath);
-
-    if (!fullPath.startsWith(__dirname)) {
+    const fullPath = path.join(__dirname, '..', filePath);
+    
+    // Safety check: ensure file is inside project root
+    const projectRoot = path.join(__dirname, '..');
+    if (!fullPath.startsWith(projectRoot)) {
         res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('Acesso proibido');
         return;
