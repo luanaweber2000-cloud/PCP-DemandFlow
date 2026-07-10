@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Check | Planejamento e Controle de Produção</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Favicon: Check Mark SVG -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2328B9DA' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='rgba(40, 185, 218, 0.1)'%3E%3C/circle%3E%3Cpolyline points='9 11 12 14 16 9'%3E%3C/polyline%3E%3C/svg%3E">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar: Configurações e Cadastro -->
+        <aside class="sidebar">
+            <div class="brand">
+                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="#28B9DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(40, 185, 218, 0.4));">
+                    <circle cx="12" cy="12" r="10" fill="rgba(40, 185, 218, 0.1)"></circle>
+                    <polyline points="9 11 12 14 16 9"></polyline>
+                </svg>
+                <h2><strong>Marketing</strong><span>Check</span></h2>
+            </div>
+
+            <!-- Painel de Configurações -->
+            <section class="config-panel card">
+                <h3>
+                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    Turno e Expediente
+                </h3>
+                <div class="form-group">
+                    <label for="prod-start">Início da Produção</label>
+                    <input type="datetime-local" id="prod-start">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shift-start">Entrada</label>
+                        <input type="time" id="shift-start" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="shift-end">Saída</label>
+                        <input type="time" id="shift-end" value="16:30">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lunch-start">Início Almoço</label>
+                        <input type="time" id="lunch-start" value="12:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="lunch-duration">Almoço (min)</label>
+                        <input type="number" id="lunch-duration" value="60" min="0" step="5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dias de Trabalho</label>
+                    <div class="weekdays-selector">
+                        <button type="button" class="day-btn active" data-day="1" title="Segunda">S</button>
+                        <button type="button" class="day-btn active" data-day="2" title="Terça">T</button>
+                        <button type="button" class="day-btn active" data-day="3" title="Quarta">Q</button>
+                        <button type="button" class="day-btn active" data-day="4" title="Quinta">Q</button>
+                        <button type="button" class="day-btn active" data-day="5" title="Sexta">S</button>
+                        <button type="button" class="day-btn" data-day="6" title="Sábado">S</button>
+                        <button type="button" class="day-btn" data-day="0" title="Domingo">D</button>
+                    </div>
+                </div>
+                <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                        <button type="button" class="btn btn-secondary btn-block" id="btn-open-overtime-modal" style="gap: 0.5rem; justify-content: center; width: 100%;">
+                            <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px;">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            Adicionar Hora Extra
+                        </button>
+                        <div id="overtime-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <!-- Lista de horas extras cadastradas -->
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
+                        <button type="button" class="btn btn-secondary btn-block" id="btn-open-absence-modal" style="gap: 0.5rem; justify-content: center; width: 100%;">
+                            <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px;">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                                <line x1="8" y1="14" x2="16" y2="14"/>
+                            </svg>
+                            Registrar Falta / Feriado
+                        </button>
+                        <div id="absence-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <!-- Lista de faltas/feriados cadastrados -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header: KPI Dashboard -->
+            <header class="header">
+                <div class="kpi-container">
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Fim de Produção (Entrega)</span>
+                            <h2 class="kpi-value text-gradient" id="kpi-final-delivery">--/-- --:--</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tempo Total Ativo</span>
+                            <h2 class="kpi-value" id="kpi-total-duration">0h 00m</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Status da Operação</span>
+                            <h2 class="kpi-value" id="kpi-production-status">Estável</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-green" id="kpi-status-indicator">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Fila Ativa</span>
+                            <h2 class="kpi-value" id="kpi-active-count">0 Trabalhos</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-cyan">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs & Actions -->
+            <div class="tabs-header-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem; flex-wrap: wrap;">
+                <nav class="nav-tabs">
+                    <button class="tab-btn active" data-tab="pcp-tab">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        Painel de Fila & Timeline
+                    </button>
+                    <button class="tab-btn" data-tab="completed-tab">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        Histórico de Concluídos
+                    </button>
+                    <button class="tab-btn" data-tab="cancelled-tab">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                        </svg>
+                        Histórico de Cancelados
+                    </button>
+                </nav>
+                <button type="button" class="btn btn-primary" id="btn-open-task-modal">
+                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nova Demanda
+                </button>
+            </div>
+
+            <!-- Tab Content: PCP Principal -->
+            <div id="pcp-tab" class="tab-content active">
+                <div class="dashboard-grid">
+                    <!-- Fila Interativa -->
+                    <div class="grid-section card queue-section">
+                        <div class="section-header">
+                            <h3>Fila de Produção</h3>
+                            <span class="info-tip">Arraste os itens para reordenar a sequência de fabricação</span>
+                        </div>
+                        
+                        <div class="empty-state" id="queue-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <p>Nenhuma atividade ativa na fila de PCP.</p>
+                            <span>Preencha o formulário ao lado para adicionar demandas.</span>
+                        </div>
+
+                        <div class="queue-list" id="queue-list">
+                            <!-- Injected dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Gantt Timeline -->
+                    <div class="grid-section card gantt-section">
+                        <div class="section-header">
+                            <h3>Cronograma de Gantt (Timeline)</h3>
+                            <div class="timeline-legend">
+                                <span class="legend-item"><span class="legend-dot status-fila"></span> Fila</span>
+                                <span class="legend-item"><span class="legend-dot status-iniciado"></span> Iniciado</span>
+                                <span class="legend-item"><span class="legend-dot status-pausado"></span> Pausado</span>
+                            </div>
+                        </div>
+                        <div class="gantt-chart-container" id="gantt-chart-container">
+                            <div class="gantt-empty-state" id="gantt-empty">
+                                Adicione tarefas para visualizar a linha do tempo
+                            </div>
+                            <div class="gantt-wrapper" id="gantt-wrapper">
+                                <div class="gantt-header" id="gantt-header-dates">
+                                    <!-- Date columns will be injected here -->
+                                </div>
+                                <div class="gantt-rows" id="gantt-rows-container">
+                                    <!-- Gantt rows will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Concluídos -->
+            <div id="completed-tab" class="tab-content">
+                <div class="card history-card">
+                    <div class="section-header">
+                        <h3>Trabalhos Concluídos</h3>
+                        <span class="info-tip">Abaixo estão os trabalhos finalizados. Armazenados localmente por 6 meses.</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="history-table" id="completed-table">
+                            <thead>
+                                <tr>
+                                    <th>Atividade</th>
+                                    <th>Material / Produto</th>
+                                    <th>Qtd.</th>
+                                    <th>Tempo Estimado</th>
+                                    <th>Entrega Prevista</th>
+                                    <th>Conclusão Real</th>
+                                    <th>Desvio (Atraso/Adiantado)</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-list">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                        <div class="empty-state" id="completed-empty">
+                            <p>Nenhuma atividade concluída até o momento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Cancelados -->
+            <div id="cancelled-tab" class="tab-content">
+                <div class="card history-card">
+                    <div class="section-header">
+                        <h3>Trabalhos Cancelados</h3>
+                        <span class="info-tip">Abaixo estão os trabalhos cancelados com seus respectivos motivos. Armazenados por 6 meses.</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="history-table" id="cancelled-table">
+                            <thead>
+                                <tr>
+                                    <th>Atividade</th>
+                                    <th>Material / Produto</th>
+                                    <th>Qtd.</th>
+                                    <th>Tempo Estimado</th>
+                                    <th>Cancelado Em</th>
+                                    <th>Motivo do Cancelamento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cancelled-list">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                        <div class="empty-state" id="cancelled-empty">
+                            <p>Nenhuma atividade cancelada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Cancelamento -->
+    <div class="modal-overlay" id="cancel-modal">
+        <div class="modal card">
+            <div class="modal-header">
+                <h3>Cancelar Atividade</h3>
+                <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Por favor, especifique o motivo do cancelamento para a atividade:</p>
+                <div class="task-detail-highlight" id="cancel-task-info">Atividade - Material</div>
+                <div class="form-group">
+                    <label for="cancel-reason">Motivo do Cancelamento</label>
+                    <textarea id="cancel-reason" placeholder="Descreva aqui o motivo (ex: Falta de matéria-prima, alteração no pedido pelo cliente, etc.)" required rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCancelModal()">Voltar</button>
+                <button class="btn btn-danger" id="confirm-cancel-btn">Confirmar Cancelamento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Conclusão -->
+    <div class="modal-overlay" id="complete-modal">
+        <div class="modal card">
+            <div class="modal-header">
+                <h3>Concluir Atividade</h3>
+                <button class="modal-close" onclick="closeCompleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Informe a data e horário reais de conclusão para fins de recálculo da fila:</p>
+                <div class="task-detail-highlight" id="complete-task-info">Atividade - Material</div>
+                <div class="form-group">
+                    <label for="actual-completion-time">Data/Hora Real de Conclusão</label>
+                    <input type="datetime-local" id="actual-completion-time" required>
+                </div>
+                <p class="modal-alert-info">
+                    <strong>Atenção:</strong> Se a conclusão for registrada antes ou depois do previsto originalmente, toda a fila subsequente será recalculada a partir deste horário!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCompleteModal()">Voltar</button>
+                <button class="btn btn-success" id="confirm-complete-btn">Confirmar Conclusão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Nova Demanda -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal card" style="max-width: 500px; width: 100%;">
+            <div class="modal-header">
+                <h3>Nova Demanda</h3>
+                <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <form id="task-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="task-name">Atividade</label>
+                        <input type="text" id="task-name" placeholder="Ex: Criação, Revisão, Tradução" required list="default-activities">
+                        <datalist id="default-activities">
+                            <option value="Criação"></option>
+                            <option value="Revisão"></option>
+                            <option value="Tradução"></option>
+                        </datalist>
+                    </div>
+                    <div class="form-group">
+                        <label for="material-name">Material / Produto</label>
+                        <input type="text" id="material-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-requestor">Solicitante</label>
+                        <input type="text" id="task-requestor" placeholder="Ex: João Silva, Marketing" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="request-date">Data de Solicitação</label>
+                        <input type="datetime-local" id="request-date" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quantity">Quantidade</label>
+                            <input type="number" id="quantity" value="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="unit-time">Tempo Unitário</label>
+                            <div class="time-input-group">
+                                <input type="number" id="unit-time" value="5" min="0.1" step="any" required>
+                                <select id="time-unit">
+                                    <option value="min">Min</option>
+                                    <option value="hour">Horas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fixed-deadline">Data de Entrega Fixa (Opcional)</label>
+                        <input type="datetime-local" id="fixed-deadline">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description">Texto Explicativo (Opcional)</label>
+                        <textarea id="task-description" placeholder="Adicione observações ou texto explicativo..." rows="3"></textarea>
+                    </div>
+                    <div class="preview-box" style="margin-bottom: 0;">
+                        <span>Tempo Total Estimado:</span>
+                        <strong id="task-time-preview">5 min</strong>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar à Fila</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Hora Extra -->
+    <div class="modal-overlay" id="overtime-modal">
+        <div class="modal card" style="max-width: 400px; width: 100%;">
+            <div class="modal-header">
+                <h3>Adicionar Hora Extra</h3>
+                <button class="modal-close" onclick="closeOvertimeModal()">&times;</button>
+            </div>
+            <form id="overtime-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="overtime-date">Dia de Trabalho Extra</label>
+                        <input type="date" id="overtime-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="overtime-start">Início da Hora Extra</label>
+                        <input type="time" id="overtime-start" value="17:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="overtime-end">Fim da Hora Extra</label>
+                        <input type="time" id="overtime-end" value="19:00" required>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeOvertimeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Falta/Feriado -->
+    <div class="modal-overlay" id="absence-modal">
+        <div class="modal card" style="max-width: 400px; width: 100%;">
+            <div class="modal-header">
+                <h3>Adicionar Falta/Feriado</h3>
+                <button class="modal-close" onclick="closeAbsenceModal()">&times;</button>
+            </div>
+            <form id="absence-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="absence-date">Dia da Falta/Feriado</label>
+                        <input type="date" id="absence-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="absence-start">Horário de Início (Falta)</label>
+                        <input type="time" id="absence-start" value="08:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="absence-end">Horário de Fim (Falta)</label>
+                        <input type="time" id="absence-end" value="16:30" required>
+                    </div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;">
+                        * Nota: Para feriado ou falta de dia inteiro, defina o horário completo do expediente (ex: 08:00 às 16:30).
+                    </span>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAbsenceModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Enviar por E-mail -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal card" style="max-width: 420px; width: 100%;">
+            <div class="modal-header">
+                <h3>Enviar por E-mail</h3>
+                <button class="modal-close" onclick="closeReportModal()">&times;</button>
+            </div>
+            <form id="report-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="report-email">E-mail de Destino</label>
+                        <input type="email" id="report-email" placeholder="exemplo@empresa.com" required>
+                    </div>
+                    
+                    <p style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.4; margin-top: -0.25rem;">
+                        Selecione as seções que você deseja incluir no relatório:
+                    </p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
+                            <input type="checkbox" id="rep-queue" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            Fila de Atividades (Ativas)
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
+                            <input type="checkbox" id="rep-completed" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            Histórico de Concluídos
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
+                            <input type="checkbox" id="rep-cancelled" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            Histórico de Cancelados
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background: #28B9DA; border-color: #28B9DA; color: #111; font-weight: bold;">Gerar & Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Principal -->
+    <script src="app.js"></script>
+</body>
+</html>

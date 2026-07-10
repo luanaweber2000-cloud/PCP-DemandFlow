@@ -1,0 +1,10 @@
+# Node modules
+node_modules/
+
+# OS system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Opcional: Descomente a linha abaixo caso não queira subir seus dados locais para o Git
+Dados salvos/
