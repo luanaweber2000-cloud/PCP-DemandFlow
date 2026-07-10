@@ -702,7 +702,7 @@ ON CONFLICT (id) DO NOTHING;</pre>
 
     <!-- Tela de Login e Cadastro -->
     <div class="login-overlay" id="login-overlay">
-        <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(16, 9, 30, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(168, 85, 247, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+        <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(25, 16, 46, 0.35); backdrop-filter: blur(24px) saturate(120%); -webkit-backdrop-filter: blur(24px) saturate(120%); border: 1px solid rgba(251, 191, 36, 0.35); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);">
             <div class="login-header" style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="3" style="width: 48px; height: 48px; margin-bottom: 0.25rem;">
                     <circle cx="12" cy="12" r="10" fill="rgba(168, 85, 247, 0.1)"></circle>
@@ -711,7 +711,6 @@ ON CONFLICT (id) DO NOTHING;</pre>
                 <h2 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
                     <span style="color: #a855f7; font-weight: 800;">Marketing</span> Check
                 </h2>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Planejamento e Controle de Produção</p>
             </div>
             
             <form id="login-form">
@@ -719,9 +718,14 @@ ON CONFLICT (id) DO NOTHING;</pre>
                     <label for="login-email" style="display: block; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.5px;">E-mail</label>
                     <input type="email" id="login-email" placeholder="nome@exemplo.com" required autocomplete="username" style="width: 100%; box-sizing: border-box;">
                 </div>
-                <div class="form-group" style="margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label for="login-password" style="display: block; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.5px;">Senha</label>
                     <input type="password" id="login-password" placeholder="Sua senha" required autocomplete="current-password" style="width: 100%; box-sizing: border-box;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" id="login-remember" checked style="width: 16px; height: 16px; accent-color: #fbbf24; cursor: pointer;">
+                    <label for="login-remember" style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none;">Manter login salvo</label>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">

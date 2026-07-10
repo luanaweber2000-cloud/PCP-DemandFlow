@@ -1075,14 +1075,16 @@ textarea:focus {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at center, #190e30 0%, #06030b 100%);
+    background: rgba(9, 5, 20, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .login-overlay.active {
     opacity: 1;
