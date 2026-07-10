@@ -2195,15 +2195,28 @@ async function setupAuth() {
         // Se o Supabase não estiver configurado, permite usar localmente sem exigir login
         if (loginOverlay) loginOverlay.classList.remove('active');
         if (btnLogout) btnLogout.style.display = 'none';
+        
+        // Exibe o painel para permitir configuração
+        const supabasePanel = document.getElementById('supabase-panel');
+        if (supabasePanel) supabasePanel.style.display = 'block';
         return;
     }
     
     // Escuta mudanças de estado de autenticação (login/logout)
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        const supabasePanel = document.getElementById('supabase-panel');
+        
         if (session) {
             console.log("Usuário autenticado:", session.user.email);
             if (loginOverlay) loginOverlay.classList.remove('active');
             if (btnLogout) btnLogout.style.display = 'inline-flex';
+            
+            // Controle de visibilidade do painel do Supabase (apenas para administrador)
+            const email = session.user.email ? session.user.email.toLowerCase() : '';
+            const isAdmin = email.includes('luanaweber') || email === 'luanaw@weg.net';
+            if (supabasePanel) {
+                supabasePanel.style.display = isAdmin ? 'block' : 'none';
+            }
             
             // Recarrega o estado atual associado ao usuário
             await loadState();
@@ -2214,6 +2227,7 @@ async function setupAuth() {
             console.log("Nenhum usuário autenticado.");
             if (loginOverlay) loginOverlay.classList.add('active');
             if (btnLogout) btnLogout.style.display = 'none';
+            if (supabasePanel) supabasePanel.style.display = 'none';
             
             // Limpa dados em memória
             config = {};
