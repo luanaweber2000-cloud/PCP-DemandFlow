@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Favicon: Check Mark SVG -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2328B9DA' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='rgba(40, 185, 218, 0.1)'%3E%3C/circle%3E%3Cpolyline points='9 11 12 14 16 9'%3E%3C/polyline%3E%3C/svg%3E">
+    <!-- Supabase Client JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
@@ -95,9 +97,23 @@
                         </div>
                     </div>
                 </div>
+            <!-- Conexão Supabase -->
+            <section class="supabase-panel card" style="margin-top: 1rem;">
+                <h3>
+                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="#3ecf8e" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    Conexão Supabase
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-block" id="btn-open-supabase-modal" style="gap: 0.5rem; justify-content: center; width: 100%; border-color: #3ecf8e; color: #3ecf8e;">
+                        Configurar Supabase
+                    </button>
+                    <div id="supabase-status" style="font-size: 0.75rem; text-align: center; color: var(--text-secondary);">
+                        Status: Desconectado (Local)
+                    </div>
+                </div>
             </section>
-
-
 
         </aside>
 
@@ -531,6 +547,47 @@
                 <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary" style="background: #28B9DA; border-color: #28B9DA; color: #111; font-weight: bold;">Gerar & Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal do Supabase -->
+    <div class="modal-overlay" id="supabase-modal">
+        <div class="modal card" style="max-width: 500px; width: 100%;">
+            <div class="modal-header">
+                <h3>Configuração do Supabase</h3>
+                <button class="modal-close" onclick="closeSupabaseModal()">&times;</button>
+            </div>
+            <form id="supabase-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="supabase-url">Supabase Project URL</label>
+                        <input type="url" id="supabase-url" placeholder="https://xxxxxxxx.supabase.co" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supabase-key">Supabase Anon Key</label>
+                        <input type="password" id="supabase-key" placeholder="Sua Anon Public API Key" required>
+                    </div>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 6px; font-size: 0.8rem; line-height: 1.4;">
+                        <span style="font-weight: bold; color: #3ecf8e; display: block; margin-bottom: 6px;">Passo 1: Crie a Tabela no Supabase</span>
+                        Execute o comando abaixo no **SQL Editor** do seu painel do Supabase para criar a tabela necessária:
+                        <pre style="background: #111; padding: 10px; border-radius: 4px; color: #eee; margin: 8px 0 0 0; overflow-x: auto; font-family: monospace; font-size: 0.725rem; user-select: all; white-space: pre-wrap;">CREATE TABLE IF NOT EXISTS pcp_state (
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    state jsonb NOT NULL
+);
+
+INSERT INTO pcp_state (id, state) 
+VALUES (1, '{}'::jsonb)
+ON CONFLICT (id) DO NOTHING;</pre>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="disconnectSupabase()" style="border-color: #ef4444; color: #ef4444; margin-right: auto;">Desconectar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSupabaseModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background: #3ecf8e; border-color: #3ecf8e; color: #111; font-weight: bold;">Testar & Conectar</button>
                 </div>
             </form>
         </div>

@@ -18,10 +18,12 @@ let config = {
 
 // Temporary ID for modal operations
 let activeModalTaskId = null;
+let supabaseClient = null;
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     initDefaultConfig();
+    initSupabase();
     await loadState();
     runSixMonthsRetention();
     setupEventListeners();
@@ -97,7 +99,39 @@ function syncConfigToUI() {
 }
 
 async function loadState() {
-    // 1. Tenta carregar do servidor local primeiro
+    // 1. Tenta carregar do Supabase se configurado
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('pcp_state')
+                .select('state')
+                .eq('id', 1)
+                .single();
+            
+            if (!error && data && data.state && Object.keys(data.state).length > 0) {
+                const s = data.state;
+                if (s.config) config = { ...config, ...s.config };
+                if (s.tasks) tasks = s.tasks;
+                if (s.completed) completed = s.completed;
+                if (s.cancelled) cancelled = s.cancelled;
+                
+                syncConfigToUI();
+                console.log('Dados PCP carregados com sucesso do Supabase.');
+                // Salva no localStorage como backup local
+                localStorage.setItem('pcp_config', JSON.stringify(config));
+                localStorage.setItem('pcp_tasks', JSON.stringify(tasks));
+                localStorage.setItem('pcp_completed', JSON.stringify(completed));
+                localStorage.setItem('pcp_cancelled', JSON.stringify(cancelled));
+                return;
+            } else {
+                console.warn('Nenhum dado retornado ou tabela vazia no Supabase, tentando local. Erro:', error);
+            }
+        } catch (err) {
+            console.error('Falha ao carregar dados do Supabase:', err);
+        }
+    }
+
+    // 2. Tenta carregar do servidor local
     try {
         const response = await fetch('/api/data');
         if (response.ok) {
@@ -117,7 +151,7 @@ async function loadState() {
         console.warn('Servidor local inacessível ou erro ao ler dados. Usando localStorage:', err);
     }
 
-    // 2. Fallback para LocalStorage se o servidor falhar ou estiver vazio
+    // 3. Fallback para LocalStorage se o servidor falhar ou estiver vazio
     const storedConfig = localStorage.getItem('pcp_config');
     const storedTasks = localStorage.getItem('pcp_tasks');
     const storedCompleted = localStorage.getItem('pcp_completed');
@@ -134,21 +168,39 @@ async function loadState() {
 }
 
 async function saveState() {
+    const backupData = {
+        config,
+        tasks,
+        completed,
+        cancelled,
+        exportedAt: Date.now()
+    };
+
     // Sempre grava no localStorage como backup local no navegador
     localStorage.setItem('pcp_config', JSON.stringify(config));
     localStorage.setItem('pcp_tasks', JSON.stringify(tasks));
     localStorage.setItem('pcp_completed', JSON.stringify(completed));
     localStorage.setItem('pcp_cancelled', JSON.stringify(cancelled));
 
+    // Grava no Supabase se configurado
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient
+                .from('pcp_state')
+                .upsert({ id: 1, state: backupData, updated_at: new Date().toISOString() });
+            
+            if (error) {
+                console.error('Erro ao salvar dados no Supabase:', error);
+            } else {
+                console.log('Dados PCP salvos com sucesso no Supabase.');
+            }
+        } catch (err) {
+            console.error('Falha de rede ao salvar no Supabase:', err);
+        }
+    }
+
     // Tenta gravar no servidor local
     try {
-        const backupData = {
-            config,
-            tasks,
-            completed,
-            cancelled,
-            exportedAt: Date.now()
-        };
         await fetch('/api/data', {
             method: 'POST',
             headers: {
@@ -722,6 +774,16 @@ function setupEventListeners() {
             
             closeReportModal();
         });
+    }
+
+    // Modal do Supabase
+    const btnOpenSupabase = document.getElementById('btn-open-supabase-modal');
+    if (btnOpenSupabase) {
+        btnOpenSupabase.addEventListener('click', openSupabaseModal);
+    }
+    const supabaseForm = document.getElementById('supabase-form');
+    if (supabaseForm) {
+        supabaseForm.addEventListener('submit', handleSupabaseConnect);
     }
 }
 
@@ -1962,5 +2024,126 @@ function generateTextReport(includeQueue, includeCompleted, includeCancelled) {
     text += `==========================================\n`;
     text += `Marketing Check - Gerenciador de PCP`;
     return text;
+}
+
+// --- Supabase Flow ---
+function initSupabase() {
+    const url = localStorage.getItem('SUPABASE_URL');
+    const key = localStorage.getItem('SUPABASE_ANON_KEY');
+    const statusDiv = document.getElementById('supabase-status');
+    
+    if (url && key && window.supabase) {
+        try {
+            supabaseClient = window.supabase.createClient(url, key);
+            if (statusDiv) {
+                statusDiv.textContent = 'Status: Conectado (Supabase)';
+                statusDiv.style.color = '#3ecf8e';
+            }
+            console.log('Supabase client initialized successfully.');
+        } catch (err) {
+            console.error('Failed to init Supabase client:', err);
+            supabaseClient = null;
+            if (statusDiv) {
+                statusDiv.textContent = 'Status: Erro de Conexão';
+                statusDiv.style.color = '#ef4444';
+            }
+        }
+    } else {
+        supabaseClient = null;
+        if (statusDiv) {
+            statusDiv.textContent = 'Status: Desconectado (Local)';
+            statusDiv.style.color = 'var(--text-secondary)';
+        }
+    }
+}
+
+function openSupabaseModal() {
+    document.getElementById('supabase-modal').classList.add('active');
+    document.getElementById('supabase-url').value = localStorage.getItem('SUPABASE_URL') || '';
+    document.getElementById('supabase-key').value = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+}
+
+function closeSupabaseModal() {
+    document.getElementById('supabase-modal').classList.remove('active');
+}
+
+async function handleSupabaseConnect(e) {
+    e.preventDefault();
+    const url = document.getElementById('supabase-url').value.trim();
+    const key = document.getElementById('supabase-key').value.trim();
+    
+    if (!url || !key) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    if (!window.supabase) {
+        alert('Biblioteca do Supabase não foi carregada pelo CDN. Verifique sua conexão.');
+        return;
+    }
+    
+    try {
+        const client = window.supabase.createClient(url, key);
+        // Test query
+        const { data, error } = await client
+            .from('pcp_state')
+            .select('state')
+            .eq('id', 1)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            throw error;
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('SUPABASE_URL', url);
+        localStorage.setItem('SUPABASE_ANON_KEY', key);
+        supabaseClient = client;
+        
+        // Update status UI
+        document.getElementById('supabase-status').textContent = 'Status: Conectado (Supabase)';
+        document.getElementById('supabase-status').style.color = '#3ecf8e';
+        
+        // Sync data
+        if (data && data.state && Object.keys(data.state).length > 0) {
+            if (confirm('Dados encontrados no Supabase! Deseja carregar esses dados e substituir a fila local atual? (Se cancelar, os dados locais serão enviados para o Supabase)')) {
+                const s = data.state;
+                if (s.config) config = { ...config, ...s.config };
+                if (s.tasks) tasks = s.tasks;
+                if (s.completed) completed = s.completed;
+                if (s.cancelled) cancelled = s.cancelled;
+                
+                syncConfigToUI();
+                recalculateSchedule();
+                renderAll();
+                alert('Dados importados do Supabase com sucesso!');
+            } else {
+                await saveState();
+                alert('Dados locais sincronizados e enviados para o Supabase!');
+            }
+        } else {
+            await saveState();
+            alert('Conectado ao Supabase! Dados locais sincronizados e gravados na nuvem.');
+        }
+        
+        closeSupabaseModal();
+    } catch (err) {
+        alert('Erro ao conectar ao Supabase: ' + err.message + '\n\nCertifique-se de que a tabela pcp_state foi criada conforme as instruções.');
+    }
+}
+
+async function disconnectSupabase() {
+    if (confirm('Tem certeza que deseja desconectar do Supabase? Seus dados continuarão sendo salvos localmente.')) {
+        localStorage.removeItem('SUPABASE_URL');
+        localStorage.removeItem('SUPABASE_ANON_KEY');
+        supabaseClient = null;
+        const statusDiv = document.getElementById('supabase-status');
+        if (statusDiv) {
+            statusDiv.textContent = 'Status: Desconectado (Local)';
+            statusDiv.style.color = 'var(--text-secondary)';
+        }
+        closeSupabaseModal();
+        alert('Supabase desconectado! Usando banco de dados local.');
+    }
 }
 
