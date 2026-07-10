@@ -207,12 +207,20 @@
                         Histórico de Cancelados
                     </button>
                 </nav>
-                <button type="button" class="btn btn-primary" id="btn-open-task-modal">
-                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Nova Demanda
-                </button>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button type="button" class="btn btn-primary" id="btn-open-task-modal">
+                        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Nova Demanda
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-logout" style="display: none; border-color: #ef4444; color: #ef4444; gap: 0.5rem; padding: 8px 12px; font-weight: bold; border-radius: 6px;">
+                        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px;">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                        </svg>
+                        Sair
+                    </button>
+                </div>
             </div>
 
             <!-- Tab Content: PCP Principal -->
@@ -584,6 +592,59 @@ ON CONFLICT (id) DO NOTHING;</pre>
                     <button type="button" class="btn btn-secondary" onclick="disconnectSupabase()" style="border-color: #ef4444; color: #ef4444; margin-right: auto;">Desconectar</button>
                     <button type="button" class="btn btn-secondary" onclick="closeSupabaseModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary" style="background: #3ecf8e; border-color: #3ecf8e; color: #111; font-weight: bold;">Testar & Conectar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tela de Login e Cadastro -->
+    <div class="login-overlay" id="login-overlay">
+        <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+            <div class="login-header" style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#28B9DA" stroke-width="3" style="width: 48px; height: 48px; margin-bottom: 0.25rem;">
+                    <circle cx="12" cy="12" r="10" fill="rgba(40, 185, 218, 0.1)"></circle>
+                    <polyline points="9 11 12 14 16 9"></polyline>
+                </svg>
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="color: #28B9DA; font-weight: 800;">Marketing</span> Check
+                </h2>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Planejamento e Controle de Produção</p>
+            </div>
+            
+            <!-- Botão do Google (Destaque) -->
+            <button type="button" class="google-btn" id="btn-login-google" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; color: #1e293b; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease;">
+                <svg viewBox="0 0 48 48" style="width: 20px; height: 20px; display: block;">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.75H24v9h12.75c-.55 2.85-2.17 5.27-4.59 6.89l7.14 5.53C43.5 36.23 46.5 30.73 46.5 24z"/>
+                    <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.14-5.53c-1.97 1.32-4.5 2.1-8.75 2.1-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Entrar com Google
+            </button>
+            
+            <div class="login-separator" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin: 1.5rem 0; font-size: 0.75rem; color: var(--text-secondary);">
+                <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+                <span>ou use e-mail tradicional</span>
+                <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08);"></div>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="login-email" style="display: block; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.5px;">E-mail</label>
+                    <input type="email" id="login-email" placeholder="nome@exemplo.com" required autocomplete="username" style="width: 100%; box-sizing: border-box;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="login-password" style="display: block; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.5px;">Senha</label>
+                    <input type="password" id="login-password" placeholder="Sua senha" required autocomplete="current-password" style="width: 100%; box-sizing: border-box;">
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-primary btn-block" style="background: #28B9DA; border-color: #28B9DA; color: #111; font-weight: bold; width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+                        Entrar
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="btn-signup" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+                        Criar Nova Conta
+                    </button>
                 </div>
             </form>
         </div>

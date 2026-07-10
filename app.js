@@ -24,11 +24,14 @@ let supabaseClient = null;
 document.addEventListener('DOMContentLoaded', async () => {
     initDefaultConfig();
     initSupabase();
-    await loadState();
-    runSixMonthsRetention();
     setupEventListeners();
-    recalculateSchedule();
-    renderAll();
+    await setupAuth();
+    if (!supabaseClient) {
+        await loadState();
+        runSixMonthsRetention();
+        recalculateSchedule();
+        renderAll();
+    }
 });
 
 // Setup default starting date and configuration
@@ -102,6 +105,14 @@ async function loadState() {
     // 1. Tenta carregar do Supabase se configurado
     if (supabaseClient) {
         try {
+            // Verifica se há usuário logado
+            const sessionRes = await supabaseClient.auth.getSession();
+            const session = sessionRes.data?.session;
+            if (!session) {
+                console.warn('Sem sessão ativa no Supabase. Ocultando dados até o login.');
+                return;
+            }
+
             const { data, error } = await supabaseClient
                 .from('MerketingCheck')
                 .select('state')
@@ -185,14 +196,20 @@ async function saveState() {
     // Grava no Supabase se configurado
     if (supabaseClient) {
         try {
-            const { error } = await supabaseClient
-                .from('MerketingCheck')
-                .upsert({ id: 1, state: backupData });
-            
-            if (error) {
-                console.error('Erro ao salvar dados no Supabase:', error);
+            const sessionRes = await supabaseClient.auth.getSession();
+            const session = sessionRes.data?.session;
+            if (session) {
+                const { error } = await supabaseClient
+                    .from('MerketingCheck')
+                    .upsert({ id: 1, state: backupData });
+                
+                if (error) {
+                    console.error('Erro ao salvar dados no Supabase:', error);
+                } else {
+                    console.log('Dados PCP salvos com sucesso no Supabase.');
+                }
             } else {
-                console.log('Dados PCP salvos com sucesso no Supabase.');
+                console.warn('Tentativa de salvar dados ignorada pois o usuário não está autenticado no Supabase.');
             }
         } catch (err) {
             console.error('Falha de rede ao salvar no Supabase:', err);
@@ -2134,6 +2151,10 @@ async function handleSupabaseConnect(e) {
 
 async function disconnectSupabase() {
     if (confirm('Tem certeza que deseja desconectar do Supabase? Seus dados continuarão sendo salvos localmente.')) {
+        // Desloga antes de remover credenciais
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut().catch(() => {});
+        }
         localStorage.removeItem('SUPABASE_URL');
         localStorage.removeItem('SUPABASE_ANON_KEY');
         supabaseClient = null;
@@ -2142,8 +2163,132 @@ async function disconnectSupabase() {
             statusDiv.textContent = 'Status: Desconectado (Local)';
             statusDiv.style.color = 'var(--text-secondary)';
         }
+        // Oculta tela de login caso esteja visível
+        const loginOverlay = document.getElementById('login-overlay');
+        if (loginOverlay) loginOverlay.classList.remove('active');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.style.display = 'none';
+
         closeSupabaseModal();
+        
+        // Recarrega dados locais
+        await loadState();
+        recalculateSchedule();
+        renderAll();
         alert('Supabase desconectado! Usando banco de dados local.');
+    }
+}
+
+// --- Supabase Authentication Flow ---
+async function setupAuth() {
+    const loginOverlay = document.getElementById('login-overlay');
+    const btnLogout = document.getElementById('btn-logout');
+
+    if (!supabaseClient) {
+        // Se o Supabase não estiver configurado, permite usar localmente sem exigir login
+        if (loginOverlay) loginOverlay.classList.remove('active');
+        if (btnLogout) btnLogout.style.display = 'none';
+        return;
+    }
+    
+    // Escuta mudanças de estado de autenticação (login/logout)
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (session) {
+            console.log("Usuário autenticado:", session.user.email);
+            if (loginOverlay) loginOverlay.classList.remove('active');
+            if (btnLogout) btnLogout.style.display = 'inline-flex';
+            
+            // Recarrega o estado atual associado ao usuário
+            await loadState();
+            runSixMonthsRetention();
+            recalculateSchedule();
+            renderAll();
+        } else {
+            console.log("Nenhum usuário autenticado.");
+            if (loginOverlay) loginOverlay.classList.add('active');
+            if (btnLogout) btnLogout.style.display = 'none';
+            
+            // Limpa dados em memória
+            config = {};
+            tasks = [];
+            completed = [];
+            cancelled = [];
+            initDefaultConfig();
+            renderAll();
+        }
+    });
+
+    // Registra os botões da tela de login
+    const btnGoogle = document.getElementById('btn-login-google');
+    if (btnGoogle) {
+        btnGoogle.addEventListener('click', async () => {
+            try {
+                const { error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                if (error) throw error;
+            } catch (err) {
+                alert('Erro ao entrar com Google: ' + err.message);
+            }
+        });
+    }
+
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const { error } = await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                if (error) throw error;
+            } catch (err) {
+                alert('Erro ao entrar: ' + err.message);
+            }
+        });
+    }
+
+    const btnSignup = document.getElementById('btn-signup');
+    if (btnSignup) {
+        btnSignup.addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                alert('Por favor, digite e-mail e senha para criar a conta.');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient.auth.signUp({
+                    email,
+                    password
+                });
+                if (error) throw error;
+                alert('Cadastro efetuado! Se o e-mail de confirmação estiver habilitado, valide sua conta antes de logar.');
+            } catch (err) {
+                alert('Erro ao cadastrar: ' + err.message);
+            }
+        });
+    }
+
+    const btnLogoutActual = document.getElementById('btn-logout');
+    if (btnLogoutActual) {
+        // Remove listener anterior se houver substituindo a referência
+        const newBtnLogout = btnLogoutActual.cloneNode(true);
+        btnLogoutActual.parentNode.replaceChild(newBtnLogout, btnLogoutActual);
+        newBtnLogout.addEventListener('click', async () => {
+            if (confirm('Deseja realmente sair?')) {
+                await supabaseClient.auth.signOut();
+            }
+        });
     }
 }
 
