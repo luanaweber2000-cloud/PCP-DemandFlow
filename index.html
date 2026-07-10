@@ -19,8 +19,8 @@
         <!-- Sidebar: Configurações e Cadastro -->
         <aside class="sidebar">
             <div class="brand">
-                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="#28B9DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(40, 185, 218, 0.4));">
-                    <circle cx="12" cy="12" r="10" fill="rgba(40, 185, 218, 0.1)"></circle>
+                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));">
+                    <circle cx="12" cy="12" r="10" fill="rgba(168, 85, 247, 0.1)"></circle>
                     <polyline points="9 11 12 14 16 9"></polyline>
                 </svg>
                 <h2><strong>Marketing</strong><span>Check</span></h2>
@@ -547,24 +547,24 @@
                     
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
-                            <input type="checkbox" id="rep-queue" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            <input type="checkbox" id="rep-queue" checked style="width: 16px; height: 16px; accent-color: #a855f7;">
                             Fila de Atividades (Ativas)
                         </label>
                         
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
-                            <input type="checkbox" id="rep-completed" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            <input type="checkbox" id="rep-completed" checked style="width: 16px; height: 16px; accent-color: #a855f7;">
                             Histórico de Concluídos
                         </label>
                         
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-transform: none; font-size: 0.85rem; color: var(--text-primary); font-weight: normal;">
-                            <input type="checkbox" id="rep-cancelled" checked style="width: 16px; height: 16px; accent-color: #28B9DA;">
+                            <input type="checkbox" id="rep-cancelled" checked style="width: 16px; height: 16px; accent-color: #a855f7;">
                             Histórico de Cancelados
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="background: #28B9DA; border-color: #28B9DA; color: #111; font-weight: bold;">Gerar & Enviar</button>
+                    <button type="submit" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Gerar & Enviar</button>
                 </div>
             </form>
         </div>
@@ -702,14 +702,14 @@ ON CONFLICT (id) DO NOTHING;</pre>
 
     <!-- Tela de Login e Cadastro -->
     <div class="login-overlay" id="login-overlay">
-        <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+        <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(16, 9, 30, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(168, 85, 247, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
             <div class="login-header" style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#28B9DA" stroke-width="3" style="width: 48px; height: 48px; margin-bottom: 0.25rem;">
-                    <circle cx="12" cy="12" r="10" fill="rgba(40, 185, 218, 0.1)"></circle>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="3" style="width: 48px; height: 48px; margin-bottom: 0.25rem;">
+                    <circle cx="12" cy="12" r="10" fill="rgba(168, 85, 247, 0.1)"></circle>
                     <polyline points="9 11 12 14 16 9"></polyline>
                 </svg>
                 <h2 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
-                    <span style="color: #28B9DA; font-weight: 800;">Marketing</span> Check
+                    <span style="color: #a855f7; font-weight: 800;">Marketing</span> Check
                 </h2>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Planejamento e Controle de Produção</p>
             </div>
@@ -725,7 +725,7 @@ ON CONFLICT (id) DO NOTHING;</pre>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <button type="submit" class="btn btn-primary btn-block" style="background: #28B9DA; border-color: #28B9DA; color: #111; font-weight: bold; width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+                    <button type="submit" class="btn btn-primary btn-block" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold; width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
                         Entrar
                     </button>
                 </div>
