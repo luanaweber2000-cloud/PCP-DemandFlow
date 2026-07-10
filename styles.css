@@ -185,6 +185,7 @@ input[type="number"],
 input[type="datetime-local"],
 input[type="date"],
 input[type="email"],
+input[type="password"],
 input[type="time"],
 select,
 textarea {
