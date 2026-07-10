@@ -2045,8 +2045,15 @@ function generateTextReport(includeQueue, includeCompleted, includeCancelled) {
 
 // --- Supabase Flow ---
 function initSupabase() {
-    const url = localStorage.getItem('SUPABASE_URL');
-    const key = localStorage.getItem('SUPABASE_ANON_KEY');
+    let url = localStorage.getItem('SUPABASE_URL');
+    let key = localStorage.getItem('SUPABASE_ANON_KEY');
+    
+    // Fallback padrão para o banco de dados da empresa no Brasil (Supabase)
+    if (!url || !key) {
+        url = 'https://kqnpdpmscgnjivwtdjty.supabase.co';
+        key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxbnBkcG1zY2duaml2d3RkanR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NjE5MDQsImV4cCI6MjA5OTIzNzkwNH0.SPfad8FcP42kyb1s6RND_VLYilXuMe9xPeEwEo4eNy4';
+    }
+    
     const statusDiv = document.getElementById('supabase-status');
     
     if (url && key && window.supabase) {
