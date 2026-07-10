@@ -571,15 +571,11 @@
                     </div>
                     
                     <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 6px; font-size: 0.8rem; line-height: 1.4;">
-                        <span style="font-weight: bold; color: #3ecf8e; display: block; margin-bottom: 6px;">Passo 1: Crie a Tabela no Supabase</span>
-                        Execute o comando abaixo no **SQL Editor** do seu painel do Supabase para criar a tabela necessária:
-                        <pre style="background: #111; padding: 10px; border-radius: 4px; color: #eee; margin: 8px 0 0 0; overflow-x: auto; font-family: monospace; font-size: 0.725rem; user-select: all; white-space: pre-wrap;">CREATE TABLE IF NOT EXISTS pcp_state (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    state jsonb NOT NULL
-);
+                        <span style="font-weight: bold; color: #3ecf8e; display: block; margin-bottom: 6px;">Passo 1: Ajuste sua Tabela no Supabase</span>
+                        Sua tabela **MerketingCheck** precisa ter uma coluna chamada **state** do tipo **jsonb**. Execute o comando abaixo no **SQL Editor** para criá-la e adicionar o registro inicial:
+                        <pre style="background: #111; padding: 10px; border-radius: 4px; color: #eee; margin: 8px 0 0 0; overflow-x: auto; font-family: monospace; font-size: 0.725rem; user-select: all; white-space: pre-wrap;">ALTER TABLE "MerketingCheck" ADD COLUMN IF NOT EXISTS state jsonb;
 
-INSERT INTO pcp_state (id, state) 
+INSERT INTO "MerketingCheck" (id, state) 
 VALUES (1, '{}'::jsonb)
 ON CONFLICT (id) DO NOTHING;</pre>
                     </div>

@@ -103,7 +103,7 @@ async function loadState() {
     if (supabaseClient) {
         try {
             const { data, error } = await supabaseClient
-                .from('pcp_state')
+                .from('MerketingCheck')
                 .select('state')
                 .eq('id', 1)
                 .single();
@@ -186,8 +186,8 @@ async function saveState() {
     if (supabaseClient) {
         try {
             const { error } = await supabaseClient
-                .from('pcp_state')
-                .upsert({ id: 1, state: backupData, updated_at: new Date().toISOString() });
+                .from('MerketingCheck')
+                .upsert({ id: 1, state: backupData });
             
             if (error) {
                 console.error('Erro ao salvar dados no Supabase:', error);
@@ -2086,7 +2086,7 @@ async function handleSupabaseConnect(e) {
         const client = window.supabase.createClient(url, key);
         // Test query
         const { data, error } = await client
-            .from('pcp_state')
+            .from('MerketingCheck')
             .select('state')
             .eq('id', 1)
             .single();
@@ -2128,7 +2128,7 @@ async function handleSupabaseConnect(e) {
         
         closeSupabaseModal();
     } catch (err) {
-        alert('Erro ao conectar ao Supabase: ' + err.message + '\n\nCertifique-se de que a tabela pcp_state foi criada conforme as instruções.');
+        alert('Erro ao conectar ao Supabase: ' + err.message + '\n\nCertifique-se de que a tabela MerketingCheck possui a coluna "state" do tipo jsonb.');
     }
 }
 
