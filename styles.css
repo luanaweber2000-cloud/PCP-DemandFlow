@@ -2,28 +2,28 @@
 
 /* --- Variables & Theme Settings --- */
 :root {
-    --bg-main: #090514; /* Deep midnight purple */
-    --bg-card: rgba(16, 9, 30, 0.7); /* Translucent purple glass */
-    --bg-card-hover: rgba(28, 16, 51, 0.85);
-    --border-color: rgba(168, 85, 247, 0.15); /* Glowing violet border */
-    --border-focus: #c084fc; /* Neon focus border */
+    --bg-main: #0b0f19;
+    --bg-card: rgba(22, 28, 45, 0.7);
+    --bg-card-hover: rgba(30, 37, 56, 0.85);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-focus: #3b82f6;
     
-    --text-primary: #f5f3ff; /* Crisp lavender-white */
-    --text-secondary: #d8b4fe; /* Light violet-purple */
-    --text-muted: #a78bfa; /* Medium violet-purple */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     
-    --primary: #a855f7; /* Glimmer Purple */
-    --primary-gradient: linear-gradient(135deg, #7c3aed, #c084fc); /* Ultraviolet gradient */
-    --purple-gradient: linear-gradient(135deg, #c084fc, #e9d5ff); /* Bright purple glow */
-    --green-gradient: linear-gradient(135deg, #10b981, #34d399); /* Emerald glow */
-    --red-gradient: linear-gradient(135deg, #ef4444, #f43f5e); /* Ruby red glow */
-    --cyan-gradient: linear-gradient(135deg, #6366f1, #a855f7); /* Indigo-violet gradient */
-    --amber-gradient: linear-gradient(135deg, #f59e0b, #fbbf24); /* Golden glow */
+    --primary: #3b82f6;
+    --primary-gradient: linear-gradient(135deg, #2563eb, #3b82f6);
+    --purple-gradient: linear-gradient(135deg, #7c3aed, #a855f7);
+    --green-gradient: linear-gradient(135deg, #059669, #10b981);
+    --red-gradient: linear-gradient(135deg, #dc2626, #f43f5e);
+    --cyan-gradient: linear-gradient(135deg, #0891b2, #06b6d4);
+    --amber-gradient: linear-gradient(135deg, #d97706, #f59e0b);
     
-    --status-fila: #a78bfa;
-    --status-iniciado: #c084fc;
-    --status-pausado: #fbbf24;
-    --status-concluido: #34d399;
+    --status-fila: #94a3b8;
+    --status-iniciado: #6366f1;
+    --status-pausado: #f59e0b;
+    --status-concluido: #10b981;
     --status-cancelado: #f43f5e;
     
     --shadow-sm: 0 2px 8px -1px rgba(0, 0, 0, 0.3);
@@ -50,9 +50,9 @@ body {
     line-height: 1.5;
     overflow-x: hidden;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
-        radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
 }
@@ -204,8 +204,8 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
-    background: rgba(20, 12, 38, 0.85);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: rgba(15, 23, 42, 0.85);
 }
 
 .time-input-group {
@@ -247,9 +247,9 @@ textarea:focus {
 }
 .day-btn.active {
     background: var(--primary-gradient);
-    border-color: var(--primary);
+    border-color: #3b82f6;
     color: white;
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
 }
 
 /* --- Buttons --- */
@@ -270,11 +270,11 @@ textarea:focus {
 .btn-primary {
     background: var(--primary-gradient);
     color: white;
-    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
     filter: brightness(1.1);
 }
 .btn-secondary {
@@ -312,8 +312,8 @@ textarea:focus {
 
 /* --- Preview Box --- */
 .preview-box {
-    background: rgba(168, 85, 247, 0.06);
-    border: 1px dashed rgba(168, 85, 247, 0.3);
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px dashed rgba(59, 130, 246, 0.3);
     border-radius: 8px;
     padding: 0.75rem;
     margin-bottom: 1rem;
@@ -429,7 +429,7 @@ textarea:focus {
 }
 .tab-btn.active {
     background: var(--bg-card);
-    color: var(--primary);
+    color: #3b82f6;
     box-shadow: var(--shadow-sm);
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -536,8 +536,8 @@ textarea:focus {
 }
 .task-card.dragging {
     opacity: 0.5;
-    background: rgba(168, 85, 247, 0.1);
-    border: 2px dashed var(--primary);
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px dashed #3b82f6;
     transform: scale(0.98);
     box-shadow: var(--shadow-lg);
 }
@@ -833,10 +833,10 @@ textarea:focus {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.gantt-bar.fila { background: linear-gradient(90deg, #7c3aed, #a855f7); }
-.gantt-bar.iniciado { background: linear-gradient(90deg, #c084fc, #e9d5ff); box-shadow: 0 0 12px rgba(192, 132, 252, 0.5); }
-.gantt-bar.pausado { background: linear-gradient(90deg, #d97706, #fbbf24); }
-.gantt-bar.atrasado { background: linear-gradient(90deg, #ef4444, #fb7185); animation: pulse 2s infinite; }
+.gantt-bar.fila { background: linear-gradient(90deg, #475569, #64748b); }
+.gantt-bar.iniciado { background: linear-gradient(90deg, #4f46e5, #6366f1); box-shadow: 0 0 8px rgba(99, 102, 241, 0.3); }
+.gantt-bar.pausado { background: linear-gradient(90deg, #b45309, #d97706); }
+.gantt-bar.atrasado { background: linear-gradient(90deg, #e11d48, #f43f5e); animation: pulse 2s infinite; }
 
 /* Non-working days or lunch shading overlay */
 .gantt-lunch-grid {
@@ -1075,7 +1075,7 @@ textarea:focus {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(9, 5, 20, 0.45);
+    background: rgba(2, 6, 23, 0.55);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
