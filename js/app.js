@@ -682,8 +682,8 @@ function setupEventListeners() {
         const newConfirmDeleteBtn = confirmDeleteBtn.cloneNode(true);
         confirmDeleteBtn.parentNode.replaceChild(newConfirmDeleteBtn, confirmDeleteBtn);
         newConfirmDeleteBtn.addEventListener('click', () => {
-            if (currentDeleteTaskId) {
-                deleteTask(currentDeleteTaskId);
+            if (globalDeleteCallback) {
+                globalDeleteCallback();
                 closeDeleteConfirmModal();
             }
         });
@@ -941,29 +941,60 @@ function setTaskStatus(taskId, status) {
     renderAll();
 }
 
-function deleteTask(taskId) {
-    tasks = tasks.filter(t => t.id !== taskId);
-    saveState();
-    recalculateSchedule();
-    renderAll();
-}
+let globalDeleteCallback = null;
 
-let currentDeleteTaskId = null;
-
-function openDeleteConfirmModal(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+function showCustomDeleteModal(title, text, name, detailsLabel, detailsValue, warningText, onConfirmCallback) {
+    const modalHeaderH3 = document.querySelector('#delete-confirm-modal .modal-header h3');
+    if (modalHeaderH3) {
+        modalHeaderH3.innerHTML = `
+            <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            ${title}
+        `;
+    }
     
-    currentDeleteTaskId = taskId;
-    document.getElementById('delete-confirm-task-name').textContent = task.name + ' (' + task.material + ')';
-    document.getElementById('delete-confirm-task-requestor').textContent = task.requestor || '---';
+    document.getElementById('delete-confirm-modal-text').textContent = text;
+    document.getElementById('delete-confirm-task-name').textContent = name;
     
+    const labelEl = document.getElementById('delete-confirm-task-requestor-label');
+    if (labelEl) labelEl.textContent = detailsLabel;
+    
+    document.getElementById('delete-confirm-task-requestor').textContent = detailsValue;
+    document.getElementById('delete-confirm-modal-warning').textContent = warningText;
+    
+    globalDeleteCallback = onConfirmCallback;
     document.getElementById('delete-confirm-modal').classList.add('active');
 }
 
 function closeDeleteConfirmModal() {
     document.getElementById('delete-confirm-modal').classList.remove('active');
-    currentDeleteTaskId = null;
+    globalDeleteCallback = null;
+}
+
+function openDeleteConfirmModal(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    showCustomDeleteModal(
+        'Excluir Demanda',
+        'Deseja realmente excluir esta atividade permanentemente?',
+        task.name + ' (' + task.material + ')',
+        'Solicitante:',
+        task.requestor || '---',
+        'Esta ação não poderá ser desfeita e os dados serão apagados na nuvem.',
+        () => {
+            deleteTask(taskId);
+        }
+    );
+}
+
+function deleteTask(taskId) {
+    tasks = tasks.filter(t => t.id !== taskId);
+    saveState();
+    recalculateSchedule();
+    renderAll();
 }
 
 let currentDetailsTaskId = null;
@@ -1177,12 +1208,24 @@ function renderOvertimes() {
 }
 
 function removeOvertime(id) {
-    if (confirm('Deseja remover esta hora extra? Isso recalculará a fila.')) {
-        config.overtimes = config.overtimes.filter(ot => ot.id !== id);
-        saveState();
-        recalculateSchedule();
-        renderAll();
-    }
+    const ot = config.overtimes.find(item => item.id === id);
+    if (!ot) return;
+    
+    const friendlyDate = formatFriendlyDate(ot.date);
+    showCustomDeleteModal(
+        'Excluir Hora Extra',
+        'Deseja realmente remover esta hora extra da programação?',
+        friendlyDate,
+        'Horário:',
+        `${ot.startTime} às ${ot.endTime}`,
+        'A exclusão recalculará os prazos de todas as demandas na fila.',
+        () => {
+            config.overtimes = config.overtimes.filter(item => item.id !== id);
+            saveState();
+            recalculateSchedule();
+            renderAll();
+        }
+    );
 }
 
 // --- Absence/Holiday Modal flow ---
@@ -1256,12 +1299,24 @@ function renderAbsences() {
 }
 
 function removeAbsence(id) {
-    if (confirm('Deseja remover esta falta/feriado? Isso recalculará a fila.')) {
-        config.absences = config.absences.filter(abs => abs.id !== id);
-        saveState();
-        recalculateSchedule();
-        renderAll();
-    }
+    const abs = config.absences.find(item => item.id === id);
+    if (!abs) return;
+    
+    const friendlyDate = formatFriendlyDate(abs.date);
+    showCustomDeleteModal(
+        'Excluir Falta / Feriado',
+        'Deseja realmente remover este registro de falta ou feriado?',
+        friendlyDate,
+        'Horário:',
+        `${abs.startTime} às ${abs.endTime}`,
+        'A exclusão recalculará os prazos de todas as demandas na fila.',
+        () => {
+            config.absences = config.absences.filter(item => item.id !== id);
+            saveState();
+            recalculateSchedule();
+            renderAll();
+        }
+    );
 }
 
 // --- Cancellation flow ---
@@ -1362,21 +1417,42 @@ function confirmCompletion() {
     }
 }
 
-// History actions: delete item permanently
 function deleteCompletedItem(index) {
-    if (confirm('Excluir este item do histórico permanentemente?')) {
-        completed.splice(index, 1);
-        saveState();
-        renderAll();
-    }
+    const task = completed[index];
+    if (!task) return;
+    
+    showCustomDeleteModal(
+        'Excluir do Histórico',
+        'Deseja realmente excluir este item do histórico permanentemente?',
+        task.name + ' (' + task.material + ')',
+        'Concluído em:',
+        task.actualEnd ? formatFriendlyDateTime(new Date(task.actualEnd)) : '---',
+        'Esta ação removerá o registro do histórico de forma definitiva.',
+        () => {
+            completed.splice(index, 1);
+            saveState();
+            renderAll();
+        }
+    );
 }
 
 function deleteCancelledItem(index) {
-    if (confirm('Excluir este item do histórico permanentemente?')) {
-        cancelled.splice(index, 1);
-        saveState();
-        renderAll();
-    }
+    const task = cancelled[index];
+    if (!task) return;
+    
+    showCustomDeleteModal(
+        'Excluir do Histórico',
+        'Deseja realmente excluir este item do histórico permanentemente?',
+        task.name + ' (' + task.material + ')',
+        'Cancelado em:',
+        task.cancelledAt ? formatFriendlyDateTime(new Date(task.cancelledAt)) : '---',
+        'Esta ação removerá o registro do histórico de forma definitiva.',
+        () => {
+            cancelled.splice(index, 1);
+            saveState();
+            renderAll();
+        }
+    );
 }
 
 // --- Report Modal flow ---

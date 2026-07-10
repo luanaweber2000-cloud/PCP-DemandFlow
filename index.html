@@ -686,12 +686,12 @@ ON CONFLICT (id) DO NOTHING;</pre>
                 <button class="modal-close" onclick="closeDeleteConfirmModal()">&times;</button>
             </div>
             <div class="modal-body" style="padding-top: 1rem;">
-                <p>Deseja realmente excluir esta atividade permanentemente?</p>
+                <p id="delete-confirm-modal-text">Deseja realmente excluir esta atividade permanentemente?</p>
                 <div style="margin-top: 0.75rem; padding: 10px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.85rem;">
                     <strong id="delete-confirm-task-name" style="color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 2px;">-</strong>
-                    Solicitante: <span id="delete-confirm-task-requestor">-</span>
+                    <span id="delete-confirm-task-requestor-label">Solicitante:</span> <span id="delete-confirm-task-requestor">-</span>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.75rem;">Esta ação não poderá ser desfeita e os dados serão apagados na nuvem.</p>
+                <p id="delete-confirm-modal-warning" style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.75rem;">Esta ação não poderá ser desfeita e os dados serão apagados na nuvem.</p>
             </div>
             <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirmModal()">Não</button>
