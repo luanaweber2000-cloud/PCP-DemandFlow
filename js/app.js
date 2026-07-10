@@ -589,13 +589,33 @@ function setupEventListeners() {
         const unitTime = parseFloat(document.getElementById('unit-time').value) || 1;
         const unit = document.getElementById('time-unit').value;
         
-        // Captura o prazo fixo definido (se houver)
+        // Captura o prazo fixo definido (se houver) com tratamento de erros de conversão
         const fixedDeadlineVal = document.getElementById('fixed-deadline').value;
-        const fixedDeadline = fixedDeadlineVal ? new Date(fixedDeadlineVal).toISOString() : null;
+        let fixedDeadline = null;
+        if (fixedDeadlineVal) {
+            try {
+                const d = new Date(fixedDeadlineVal.replace(' ', 'T'));
+                if (!isNaN(d.getTime())) {
+                    fixedDeadline = d.toISOString();
+                }
+            } catch (err) {
+                console.error('Erro ao converter data de prazo fixo:', err);
+            }
+        }
         
-        // Captura a data de solicitação definida
+        // Captura a data de solicitação definida com tratamento de erros de conversão
         const requestDateVal = document.getElementById('request-date').value;
-        const requestedAt = requestDateVal ? new Date(requestDateVal).toISOString() : new Date().toISOString();
+        let requestedAt = new Date().toISOString();
+        if (requestDateVal) {
+            try {
+                const d = new Date(requestDateVal.replace(' ', 'T'));
+                if (!isNaN(d.getTime())) {
+                    requestedAt = d.toISOString();
+                }
+            } catch (err) {
+                console.error('Erro ao converter data de solicitação:', err);
+            }
+        }
         
         // Captura o texto explicativo
         const description = document.getElementById('task-description').value.trim();
