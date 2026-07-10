@@ -380,9 +380,9 @@ textarea:focus {
     -webkit-text-fill-color: transparent;
 }
 .kpi-icon-container {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -390,8 +390,8 @@ textarea:focus {
     flex-shrink: 0;
 }
 .kpi-icon-container svg {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
 }
 .gradient-blue { background: var(--primary-gradient); }
 .gradient-purple { background: var(--purple-gradient); }
