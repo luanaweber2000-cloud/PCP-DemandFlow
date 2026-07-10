@@ -515,9 +515,10 @@
                         <label for="absence-end">Horário de Fim (Falta)</label>
                         <input type="time" id="absence-end" value="16:30" required>
                     </div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;">
-                        * Nota: Para feriado ou falta de dia inteiro, defina o horário completo do expediente (ex: 08:00 às 16:30).
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-top: 0.25rem; margin-bottom: 0.25rem;">
+                        <input type="checkbox" id="absence-all-day" style="width: 16px; height: 16px; accent-color: #28B9DA; cursor: pointer; margin: 0;">
+                        <label for="absence-all-day" style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none; font-weight: normal; text-transform: none; margin: 0;">Descontar o dia todo</label>
+                    </div>
                 </div>
                 <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="closeAbsenceModal()">Cancelar</button>

@@ -744,6 +744,23 @@ function setupEventListeners() {
     // Abre o modal de falta/feriado
     document.getElementById('btn-open-absence-modal').addEventListener('click', openAbsenceModal);
     
+    const absenceAllDay = document.getElementById('absence-all-day');
+    if (absenceAllDay) {
+        absenceAllDay.addEventListener('change', () => {
+            const startInput = document.getElementById('absence-start');
+            const endInput = document.getElementById('absence-end');
+            if (absenceAllDay.checked) {
+                startInput.value = config.shiftStart || '08:00';
+                endInput.value = config.shiftEnd || '16:30';
+                startInput.disabled = true;
+                endInput.disabled = true;
+            } else {
+                startInput.disabled = false;
+                endInput.disabled = false;
+            }
+        });
+    }
+    
     // Submissão do formulário de falta/feriado
     const absForm = document.getElementById('absence-form');
     if (absForm) {
@@ -1248,8 +1265,18 @@ function openAbsenceModal() {
     document.getElementById('absence-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     
     // Set default values matching normal shift start/end
-    document.getElementById('absence-start').value = config.shiftStart;
-    document.getElementById('absence-end').value = config.shiftEnd;
+    const absenceStart = document.getElementById('absence-start');
+    const absenceEnd = document.getElementById('absence-end');
+    const absenceAllDay = document.getElementById('absence-all-day');
+    
+    absenceStart.value = config.shiftStart || '08:00';
+    absenceEnd.value = config.shiftEnd || '16:30';
+    
+    if (absenceAllDay) {
+        absenceAllDay.checked = false;
+    }
+    absenceStart.disabled = false;
+    absenceEnd.disabled = false;
 }
 
 function closeAbsenceModal() {
