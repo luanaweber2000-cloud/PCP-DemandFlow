@@ -2059,7 +2059,7 @@ function initSupabase() {
 
 function openSupabaseModal() {
     document.getElementById('supabase-modal').classList.add('active');
-    document.getElementById('supabase-url').value = localStorage.getItem('SUPABASE_URL') || '';
+    document.getElementById('supabase-url').value = localStorage.getItem('SUPABASE_URL') || 'https://fklutvpfpgpkvukxrugb.supabase.co';
     document.getElementById('supabase-key').value = localStorage.getItem('SUPABASE_ANON_KEY') || '';
 }
 
