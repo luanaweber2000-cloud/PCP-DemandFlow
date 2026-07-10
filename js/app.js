@@ -677,6 +677,18 @@ function setupEventListeners() {
     document.getElementById('confirm-cancel-btn').addEventListener('click', confirmCancellation);
     document.getElementById('confirm-complete-btn').addEventListener('click', confirmCompletion);
     
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    if (confirmDeleteBtn) {
+        const newConfirmDeleteBtn = confirmDeleteBtn.cloneNode(true);
+        confirmDeleteBtn.parentNode.replaceChild(newConfirmDeleteBtn, confirmDeleteBtn);
+        newConfirmDeleteBtn.addEventListener('click', () => {
+            if (currentDeleteTaskId) {
+                deleteTask(currentDeleteTaskId);
+                closeDeleteConfirmModal();
+            }
+        });
+    }
+    
     // Abre o modal de nova demanda
     document.getElementById('btn-open-task-modal').addEventListener('click', openTaskModal);
     
@@ -930,12 +942,143 @@ function setTaskStatus(taskId, status) {
 }
 
 function deleteTask(taskId) {
-    if (confirm('Tem certeza que deseja excluir esta atividade da fila?')) {
-        tasks = tasks.filter(t => t.id !== taskId);
-        saveState();
-        recalculateSchedule();
-        renderAll();
+    tasks = tasks.filter(t => t.id !== taskId);
+    saveState();
+    recalculateSchedule();
+    renderAll();
+}
+
+let currentDeleteTaskId = null;
+
+function openDeleteConfirmModal(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    currentDeleteTaskId = taskId;
+    document.getElementById('delete-confirm-task-name').textContent = task.name + ' (' + task.material + ')';
+    document.getElementById('delete-confirm-task-requestor').textContent = task.requestor || '---';
+    
+    document.getElementById('delete-confirm-modal').classList.add('active');
+}
+
+function closeDeleteConfirmModal() {
+    document.getElementById('delete-confirm-modal').classList.remove('active');
+    currentDeleteTaskId = null;
+}
+
+let currentDetailsTaskId = null;
+
+function openDetailsModal(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    currentDetailsTaskId = taskId;
+    
+    // Preenche as informações básicas
+    document.getElementById('detail-name').textContent = task.name;
+    document.getElementById('detail-material').textContent = task.material;
+    document.getElementById('detail-requestor').textContent = task.requestor || '---';
+    document.getElementById('detail-qty').textContent = task.qty;
+    document.getElementById('detail-duration').textContent = formatFriendlyDuration(task.duration);
+    
+    // Status formatado
+    let statusText = 'Na Fila';
+    if (task.status === 'iniciado') {
+        statusText = task.isDelayed ? 'Iniciado (Atrasado)' : 'Iniciando';
+    } else if (task.status === 'pausado') {
+        statusText = 'Pausado';
     }
+    document.getElementById('detail-status').textContent = statusText;
+    
+    // Datas
+    document.getElementById('detail-requested-at').textContent = task.requestedAt ? formatFriendlyDateTime(task.requestedAt) : '---';
+    document.getElementById('detail-planned-start').textContent = task.plannedStart ? formatFriendlyDateTime(task.plannedStart) : '---';
+    document.getElementById('detail-planned-end').textContent = task.plannedEnd ? formatFriendlyDateTime(task.plannedEnd) : '---';
+    
+    // Prazo Fixo
+    document.getElementById('detail-fixed-deadline').textContent = task.fixedDeadline ? formatFriendlyDateTime(task.fixedDeadline) : 'Sem prazo fixo definido';
+    
+    // Descrição
+    document.getElementById('detail-description').textContent = task.description || 'Nenhuma descrição adicionada.';
+    
+    // Botão de fixar/desafixar prazo
+    const container = document.getElementById('detail-fix-deadline-container');
+    container.innerHTML = '';
+    
+    if (task.fixedDeadline) {
+        // Se já tem prazo fixo, exibe botão para desafixar
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-secondary';
+        btn.style.borderColor = '#ef4444';
+        btn.style.color = '#ef4444';
+        btn.style.fontWeight = 'bold';
+        btn.style.padding = '8px 12px';
+        btn.style.fontSize = '0.85rem';
+        btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            Desafixar Prazo
+        `;
+        btn.onclick = () => {
+            unfixDeadline(task.id);
+            openDetailsModal(task.id); // Recarrega a exibição
+        };
+        container.appendChild(btn);
+    } else {
+        // Se não tem prazo fixo, exibe botão para fixar o prazo calculado
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-secondary';
+        btn.style.borderColor = '#fbbf24';
+        btn.style.color = '#fbbf24';
+        btn.style.fontWeight = 'bold';
+        btn.style.padding = '8px 12px';
+        btn.style.fontSize = '0.85rem';
+        btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            Fixar Prazo do Sistema
+        `;
+        btn.onclick = () => {
+            if (task.plannedEnd) {
+                fixSystemDeadline(task.id);
+                openDetailsModal(task.id); // Recarrega a exibição
+            } else {
+                alert('Não há data de entrega calculada pelo sistema para fixar.');
+            }
+        };
+        container.appendChild(btn);
+    }
+    
+    document.getElementById('details-modal').classList.add('active');
+}
+
+function closeDetailsModal() {
+    document.getElementById('details-modal').classList.remove('active');
+    currentDetailsTaskId = null;
+}
+
+function fixSystemDeadline(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.plannedEnd) return;
+    
+    task.fixedDeadline = task.plannedEnd;
+    saveState();
+    recalculateSchedule();
+    renderAll();
+}
+
+function unfixDeadline(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    task.fixedDeadline = null;
+    saveState();
+    recalculateSchedule();
+    renderAll();
 }
 
 // --- Task Creation Modal flow ---
@@ -1609,6 +1752,11 @@ function renderQueue() {
         card.dataset.id = task.id;
         card.setAttribute('draggable', 'true');
         
+        card.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.task-controls')) return;
+            openDetailsModal(task.id);
+        });
+        
         // Status classes for borders/backgrounds
         if (task.status === 'pausado') {
             card.classList.add('status-paused-card');
@@ -1729,7 +1877,7 @@ function renderQueue() {
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
-                <button class="ctrl-btn btn-delete" onclick="deleteTask('${task.id}')" title="Excluir Demanda">
+                <button class="ctrl-btn btn-delete" onclick="openDeleteConfirmModal('${task.id}')" title="Excluir Demanda">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>

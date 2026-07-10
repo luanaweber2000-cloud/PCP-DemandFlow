@@ -607,6 +607,99 @@ ON CONFLICT (id) DO NOTHING;</pre>
         </div>
     </div>
 
+    <!-- Modal de Detalhes da Demanda (Duplo Clique) -->
+    <div class="modal-overlay" id="details-modal">
+        <div class="modal card" style="max-width: 550px; width: 100%;">
+            <div class="modal-header">
+                <h3>Detalhes da Demanda</h3>
+                <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div class="detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.9rem;">
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Atividade</span>
+                        <strong id="detail-name" style="color: var(--text-primary); font-size: 1.05rem;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Material / Produto</span>
+                        <strong id="detail-material" style="color: var(--text-primary); font-size: 1.05rem;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Solicitante</span>
+                        <span id="detail-requestor">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Quantidade</span>
+                        <span id="detail-qty">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Tempo Estimado</span>
+                        <span id="detail-duration">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Status Atual</span>
+                        <span id="detail-status">-</span>
+                    </div>
+                    <div style="grid-column: span 2; height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Solicitado em</span>
+                        <span id="detail-requested-at">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Prazo Fixo Definido</span>
+                        <span id="detail-fixed-deadline">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Início Estimado (Sistema)</span>
+                        <span id="detail-planned-start" style="color: #3b82f6; font-weight: 500;">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Entrega Estimada (Sistema)</span>
+                        <span id="detail-planned-end" style="color: #3ecf8e; font-weight: 500;">-</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Texto Explicativo / Descrição</span>
+                    <div id="detail-description" style="padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; line-height: 1.45; word-break: break-word; min-height: 50px; max-height: 150px; overflow-y: auto; color: var(--text-secondary); white-space: pre-wrap;">-</div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                <div id="detail-fix-deadline-container" style="margin-right: auto;">
+                    <!-- Botão dinâmico de Fixar/Desafixar Prazo -->
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal-overlay" id="delete-confirm-modal">
+        <div class="modal card" style="max-width: 400px; width: 100%;">
+            <div class="modal-header" style="border-color: #ef4444;">
+                <h3 style="color: #ef4444; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Excluir Demanda
+                </h3>
+                <button class="modal-close" onclick="closeDeleteConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding-top: 1rem;">
+                <p>Deseja realmente excluir esta atividade permanentemente?</p>
+                <div style="margin-top: 0.75rem; padding: 10px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.85rem;">
+                    <strong id="delete-confirm-task-name" style="color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 2px;">-</strong>
+                    Solicitante: <span id="delete-confirm-task-requestor">-</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.75rem;">Esta ação não poderá ser desfeita e os dados serão apagados na nuvem.</p>
+            </div>
+            <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirmModal()">Não</button>
+                <button type="button" class="btn btn-primary" id="confirm-delete-btn" style="background: #ef4444; border-color: #ef4444; color: #fff; font-weight: bold;">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Tela de Login e Cadastro -->
     <div class="login-overlay" id="login-overlay">
         <div class="login-card card" style="max-width: 400px; width: 100%; padding: 2rem; border-radius: 12px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
