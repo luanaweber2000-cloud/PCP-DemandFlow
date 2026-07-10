@@ -2055,6 +2055,12 @@ function renderQueue() {
             </div>
             
             <div class="task-controls">
+                <button class="ctrl-btn ${isFila ? 'active-fila' : ''}" onclick="setTaskStatus('${task.id}', 'fila')" title="Definir como Não Iniciado">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                </button>
                 <button class="ctrl-btn ${isInit ? 'active-iniciar' : ''}" onclick="setTaskStatus('${task.id}', 'iniciado')" title="Iniciar Trabalho">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="5 3 19 12 5 21 5 3"/>
