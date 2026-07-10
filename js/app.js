@@ -807,6 +807,7 @@ function setupEventListeners() {
                 closeOvertimeModal();
                 closeAbsenceModal();
                 closeReportModal();
+                closePauseModal();
             }
         });
     });
@@ -860,6 +861,38 @@ function setupEventListeners() {
     const supabaseForm = document.getElementById('supabase-form');
     if (supabaseForm) {
         supabaseForm.addEventListener('submit', handleSupabaseConnect);
+    }
+    
+    // Submissão do formulário de justificativa de pausa
+    const pauseForm = document.getElementById('pause-form');
+    if (pauseForm) {
+        pauseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reason = document.getElementById('pause-reason').value.trim();
+            if (!reason) return;
+            
+            if (currentPauseTaskId) {
+                const task = tasks.find(t => t.id === currentPauseTaskId);
+                if (task) {
+                    if (!task.pauseHistory) {
+                        task.pauseHistory = [];
+                    }
+                    
+                    const userEmail = await getCurrentUserEmail();
+                    task.pauseHistory.push({
+                        timestamp: new Date().toISOString(),
+                        reason: reason,
+                        user: userEmail
+                    });
+                    
+                    task.status = 'pausado';
+                    saveState();
+                    recalculateSchedule();
+                    renderAll();
+                }
+                closePauseModal();
+            }
+        });
     }
 }
 
@@ -950,6 +983,33 @@ function moveTaskDown(taskId) {
 }
 
 // Task Status Changes
+async function getCurrentUserEmail() {
+    if (supabaseClient && supabaseClient.auth) {
+        const { data } = await supabaseClient.auth.getUser();
+        if (data && data.user) {
+            return data.user.email;
+        }
+    }
+    return 'Usuário Local';
+}
+
+let currentPauseTaskId = null;
+
+function openPauseModal(taskId) {
+    currentPauseTaskId = taskId;
+    document.getElementById('pause-reason').value = '';
+    document.getElementById('pause-modal').classList.add('active');
+    setTimeout(() => {
+        const input = document.getElementById('pause-reason');
+        if (input) input.focus();
+    }, 100);
+}
+
+function closePauseModal() {
+    document.getElementById('pause-modal').classList.remove('active');
+    currentPauseTaskId = null;
+}
+
 function setTaskStatus(taskId, status) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -957,15 +1017,17 @@ function setTaskStatus(taskId, status) {
     if (status === 'iniciado') {
         task.status = 'iniciado';
         task.startedAt = new Date().toISOString();
+        saveState();
+        recalculateSchedule();
+        renderAll();
     } else if (status === 'pausado') {
-        task.status = 'pausado';
+        openPauseModal(taskId);
     } else if (status === 'fila') {
         task.status = 'fila';
+        saveState();
+        recalculateSchedule();
+        renderAll();
     }
-    
-    saveState();
-    recalculateSchedule();
-    renderAll();
 }
 
 let globalDeleteCallback = null;
@@ -1109,6 +1171,42 @@ function openDetailsModal(taskId) {
             }
         };
         container.appendChild(btn);
+    }
+    // Renderiza o Histórico de Pausas
+    const historyContainer = document.getElementById('detail-pause-history');
+    if (historyContainer) {
+        historyContainer.innerHTML = '';
+        if (task.pauseHistory && task.pauseHistory.length > 0) {
+            task.pauseHistory.forEach(item => {
+                const entry = document.createElement('div');
+                entry.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                    border-bottom: 1px solid var(--border-color);
+                    padding-bottom: 6px;
+                `;
+                
+                const timeStr = formatFriendlyDateTime(item.timestamp);
+                
+                entry.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                        <span>Pausado em: <strong>${timeStr}</strong></span>
+                        <span>Por: <strong>${item.user || 'Local'}</strong></span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-primary); font-weight: 500;">
+                        Motivo: <span style="font-weight: normal; color: var(--text-secondary);">${item.reason}</span>
+                    </div>
+                `;
+                historyContainer.appendChild(entry);
+            });
+            if (historyContainer.lastElementChild) {
+                historyContainer.lastElementChild.style.borderBottom = 'none';
+                historyContainer.lastElementChild.style.paddingBottom = '0';
+            }
+        } else {
+            historyContainer.innerHTML = `<span style="font-style: italic; color: var(--text-muted); font-size: 0.75rem;">Nenhuma pausa registrada nesta atividade.</span>`;
+        }
     }
     
     document.getElementById('details-modal').classList.add('active');

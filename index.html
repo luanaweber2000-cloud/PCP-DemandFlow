@@ -663,6 +663,12 @@ ON CONFLICT (id) DO NOTHING;</pre>
                     <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Texto Explicativo / Descrição</span>
                     <div id="detail-description" style="padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; line-height: 1.45; word-break: break-word; min-height: 50px; max-height: 150px; overflow-y: auto; color: var(--text-secondary); white-space: pre-wrap;">-</div>
                 </div>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Histórico de Pausas</span>
+                    <div id="detail-pause-history" style="padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.8rem; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-secondary);">
+                        <span style="font-style: italic; color: var(--text-muted);">Nenhuma pausa registrada nesta atividade.</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
                 <div id="detail-fix-deadline-container" style="margin-right: auto;">
@@ -698,6 +704,29 @@ ON CONFLICT (id) DO NOTHING;</pre>
                 <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirmModal()">Não</button>
                 <button type="button" class="btn btn-primary" id="confirm-delete-btn" style="background: #ef4444; border-color: #ef4444; color: #fff; font-weight: bold;">Sim, Excluir</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Justificativa de Pausa -->
+    <div class="modal-overlay" id="pause-modal">
+        <div class="modal card" style="max-width: 400px; width: 100%;">
+            <div class="modal-header">
+                <h3>Pausar Trabalho</h3>
+                <button class="modal-close" onclick="closePauseModal()">&times;</button>
+            </div>
+            <form id="pause-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Por favor, informe a justificativa ou motivo pelo qual esta demanda está sendo pausada.</p>
+                    <div class="form-group">
+                        <label for="pause-reason">Motivo da Pausa</label>
+                        <textarea id="pause-reason" placeholder="Ex: Aguardando aprovação da arte / Aguardando material do cliente..." rows="3" required style="width: 100%; box-sizing: border-box;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closePauseModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--status-pausado); border-color: var(--status-pausado); color: #fff; font-weight: bold;">Confirmar Pausa</button>
+                </div>
+            </form>
         </div>
     </div>
 
