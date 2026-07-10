@@ -68,6 +68,16 @@ function formatFriendlyDateTime(date) {
     return `${day}/${month} ${hours}:${minutes}`;
 }
 
+// Format yyyy-mm-dd to friendly string: DD/MM (weekday)
+function formatFriendlyDate(dateStr) {
+    if (!dateStr) return '--/--';
+    const dateParts = dateStr.split('-');
+    if (dateParts.length < 3) return dateStr;
+    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    const weekdayStr = localDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+    return `${dateParts[2]}/${dateParts[1]} (${weekdayStr})`;
+}
+
 // Convert minutes to friendly text: Xh YYm
 function formatFriendlyDuration(totalMins) {
     const hours = Math.floor(totalMins / 60);
