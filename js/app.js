@@ -1102,7 +1102,7 @@ function openDetailsModal(taskId) {
     document.getElementById('detail-duration').textContent = formatFriendlyDuration(task.duration);
     
     // Status formatado
-    let statusText = 'Na Fila';
+    let statusText = 'Não Iniciado';
     if (task.status === 'iniciado') {
         statusText = task.isDelayed ? 'Iniciado (Atrasado)' : 'Iniciando';
     } else if (task.status === 'pausado') {
@@ -1989,7 +1989,7 @@ function renderQueue() {
                 statusPillHtml = `<span class="status-pill iniciado">Iniciando</span>`;
             }
         } else {
-            statusPillHtml = `<span class="status-pill fila">Na Fila</span>`;
+            statusPillHtml = `<span class="status-pill fila">Não Iniciado</span>`;
         }
 
         // Action controls active states
