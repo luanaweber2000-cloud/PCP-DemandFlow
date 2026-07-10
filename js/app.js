@@ -1907,7 +1907,7 @@ function renderKPIs() {
                 if (!maxEnd || ed > maxEnd) maxEnd = ed;
             }
         });
-        document.getElementById('kpi-final-delivery').textContent = formatFriendlyDateTime(maxEnd);
+        document.getElementById('kpi-final-delivery').textContent = maxEnd ? formatFriendlyDateTime(maxEnd) : 'Sem entregas';
     } else {
         document.getElementById('kpi-final-delivery').textContent = 'Sem entregas';
     }
@@ -1919,30 +1919,17 @@ function renderKPIs() {
     });
     document.getElementById('kpi-total-duration').textContent = formatFriendlyDuration(totalMins);
     
-    // 3. Count
-    document.getElementById('kpi-active-count').textContent = `${tasks.length} Trabalho${tasks.length === 1 ? '' : 's'}`;
+    // 3. Count Todo (Fila)
+    const todoCount = tasks.filter(t => t.status === 'fila').length;
+    document.getElementById('kpi-todo-count').textContent = `${todoCount} Trabalho${todoCount === 1 ? '' : 's'}`;
     
-    // 4. Status Indicator
-    const hasDelay = tasks.some(t => t.isDelayed);
-    const isWorking = tasks.some(t => t.status === 'iniciado');
+    // 4. Count In Progress (Iniciado)
+    const progressCount = tasks.filter(t => t.status === 'iniciado').length;
+    document.getElementById('kpi-inprogress-count').textContent = `${progressCount} Trabalho${progressCount === 1 ? '' : 's'}`;
     
-    const indicator = document.getElementById('kpi-status-indicator');
-    const statusVal = document.getElementById('kpi-production-status');
-    
-    indicator.className = 'kpi-icon-container ';
-    if (hasDelay) {
-        indicator.classList.add('gradient-red');
-        statusVal.textContent = 'Atrasado';
-        statusVal.className = 'kpi-value text-danger';
-    } else if (isWorking) {
-        indicator.classList.add('gradient-blue');
-        statusVal.textContent = 'Em Operação';
-        statusVal.className = 'kpi-value text-primary';
-    } else {
-        indicator.classList.add('gradient-green');
-        statusVal.textContent = 'Estável';
-        statusVal.className = 'kpi-value text-success';
-    }
+    // 5. Count Paused (Pausado)
+    const pausedCount = tasks.filter(t => t.status === 'pausado').length;
+    document.getElementById('kpi-paused-count').textContent = `${pausedCount} Trabalho${pausedCount === 1 ? '' : 's'}`;
 }
 
 function renderQueue() {

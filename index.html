@@ -162,21 +162,8 @@
 
                     <div class="kpi-card card">
                         <div class="kpi-info">
-                            <span class="kpi-label">Status da Operação</span>
-                            <h2 class="kpi-value" id="kpi-production-status">Estável</h2>
-                        </div>
-                        <div class="kpi-icon-container gradient-green" id="kpi-status-indicator">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="kpi-card card">
-                        <div class="kpi-info">
-                            <span class="kpi-label">Fila Ativa</span>
-                            <h2 class="kpi-value" id="kpi-active-count">0 Trabalhos</h2>
+                            <span class="kpi-label">Não Iniciadas</span>
+                            <h2 class="kpi-value" id="kpi-todo-count">0 Trabalhos</h2>
                         </div>
                         <div class="kpi-icon-container gradient-cyan">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -186,6 +173,30 @@
                                 <line x1="3" y1="6" x2="3.01" y2="6"/>
                                 <line x1="3" y1="12" x2="3.01" y2="12"/>
                                 <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Em Andamento</span>
+                            <h2 class="kpi-value" id="kpi-inprogress-count">0 Trabalhos</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card card">
+                        <div class="kpi-info">
+                            <span class="kpi-label">Pausadas</span>
+                            <h2 class="kpi-value" id="kpi-paused-count">0 Trabalhos</h2>
+                        </div>
+                        <div class="kpi-icon-container gradient-amber">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
                             </svg>
                         </div>
                     </div>

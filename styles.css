@@ -397,6 +397,7 @@ textarea:focus {
 .gradient-purple { background: var(--purple-gradient); }
 .gradient-green { background: var(--green-gradient); }
 .gradient-cyan { background: var(--cyan-gradient); }
+.gradient-amber { background: var(--amber-gradient); }
 
 /* --- Navigation Tabs --- */
 .nav-tabs {
