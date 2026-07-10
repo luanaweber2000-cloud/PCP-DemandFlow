@@ -1930,6 +1930,10 @@ function renderKPIs() {
     // 5. Count Paused (Pausado)
     const pausedCount = tasks.filter(t => t.status === 'pausado').length;
     document.getElementById('kpi-paused-count').textContent = `${pausedCount} Trabalho${pausedCount === 1 ? '' : 's'}`;
+    
+    // 6. Count Delayed (Em Atraso)
+    const delayedCount = tasks.filter(t => t.isDelayed || t.missesDeadline).length;
+    document.getElementById('kpi-delayed-count').textContent = `${delayedCount} Trabalho${delayedCount === 1 ? '' : 's'}`;
 }
 
 function renderQueue() {
