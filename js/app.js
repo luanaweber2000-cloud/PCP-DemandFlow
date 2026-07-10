@@ -2199,17 +2199,23 @@ async function setupAuth() {
         // Exibe o painel para permitir configuração
         const supabasePanel = document.getElementById('supabase-panel');
         if (supabasePanel) supabasePanel.style.display = 'block';
+        
+        // Oculta painel de logout do sidebar
+        const sidebarLogoutPanel = document.getElementById('sidebar-logout-panel');
+        if (sidebarLogoutPanel) sidebarLogoutPanel.style.display = 'none';
         return;
     }
     
     // Escuta mudanças de estado de autenticação (login/logout)
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         const supabasePanel = document.getElementById('supabase-panel');
+        const sidebarLogoutPanel = document.getElementById('sidebar-logout-panel');
         
         if (session) {
             console.log("Usuário autenticado:", session.user.email);
             if (loginOverlay) loginOverlay.classList.remove('active');
             if (btnLogout) btnLogout.style.display = 'inline-flex';
+            if (sidebarLogoutPanel) sidebarLogoutPanel.style.display = 'block';
             
             // Controle de visibilidade do painel do Supabase (apenas para administrador)
             const email = session.user.email ? session.user.email.toLowerCase() : '';
@@ -2228,6 +2234,7 @@ async function setupAuth() {
             if (loginOverlay) loginOverlay.classList.add('active');
             if (btnLogout) btnLogout.style.display = 'none';
             if (supabasePanel) supabasePanel.style.display = 'none';
+            if (sidebarLogoutPanel) sidebarLogoutPanel.style.display = 'none';
             
             // Limpa dados em memória
             config = {};
@@ -2307,6 +2314,18 @@ async function setupAuth() {
         btnLogoutActual.parentNode.replaceChild(newBtnLogout, btnLogoutActual);
         newBtnLogout.addEventListener('click', async () => {
             if (confirm('Deseja realmente sair?')) {
+                await supabaseClient.auth.signOut();
+            }
+        });
+    }
+
+    const btnSidebarLogout = document.getElementById('btn-sidebar-logout');
+    if (btnSidebarLogout) {
+        // Remove listener anterior se houver substituindo a referência
+        const newBtnSidebarLogout = btnSidebarLogout.cloneNode(true);
+        btnSidebarLogout.parentNode.replaceChild(newBtnSidebarLogout, btnSidebarLogout);
+        newBtnSidebarLogout.addEventListener('click', async () => {
+            if (confirm('Deseja realmente sair da conta?')) {
                 await supabaseClient.auth.signOut();
             }
         });
