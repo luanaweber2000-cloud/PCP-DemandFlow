@@ -35,6 +35,10 @@
                     </svg>
                     Turno e Expediente
                 </h3>
+                <div class="settings-tabs" style="display: flex; gap: 0.25rem; margin-bottom: 1rem; background: rgba(15, 23, 42, 0.4); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <button type="button" class="settings-tab-btn active" data-type="interna" style="flex: 1; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; background: var(--bg-card); color: var(--text-primary); transition: all 0.2s;">Config. Interna</button>
+                    <button type="button" class="settings-tab-btn" data-type="externa" style="flex: 1; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s;">Config. Externa</button>
+                </div>
                 <div class="form-group">
                     <label for="prod-start">Início da Produção</label>
                     <input type="datetime-local" id="prod-start">
@@ -227,6 +231,12 @@
                         </svg>
                         Painel de Fila & Timeline
                     </button>
+                    <button class="tab-btn" data-tab="external-tab">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        Fila e Timeline Externo
+                    </button>
                     <button class="tab-btn" data-tab="completed-tab">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -303,6 +313,58 @@
                                     <!-- Date columns will be injected here -->
                                 </div>
                                 <div class="gantt-rows" id="gantt-rows-container">
+                                    <!-- Gantt rows will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: PCP Externo -->
+            <div id="external-tab" class="tab-content">
+                <div class="dashboard-grid">
+                    <!-- Fila Interativa Externa -->
+                    <div class="grid-section card queue-section">
+                        <div class="section-header">
+                            <h3>Fila de Produção Externa</h3>
+                            <span class="info-tip">Arraste os itens para reordenar a sequência de fabricação externa</span>
+                        </div>
+                        
+                        <div class="empty-state" id="external-queue-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <p>Nenhuma atividade ativa na fila externa.</p>
+                            <span>Preencha o formulário ao lado para adicionar demandas externas.</span>
+                        </div>
+
+                        <div class="queue-list" id="external-queue-list">
+                            <!-- Injected dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Gantt Timeline Externa -->
+                    <div class="grid-section card gantt-section">
+                        <div class="section-header">
+                            <h3>Cronograma de Gantt Externo (Timeline)</h3>
+                            <div class="timeline-legend">
+                                <span class="legend-item"><span class="legend-dot status-fila"></span> Fila</span>
+                                <span class="legend-item"><span class="legend-dot status-iniciado"></span> Iniciado</span>
+                                <span class="legend-item"><span class="legend-dot status-pausado"></span> Pausado</span>
+                            </div>
+                        </div>
+                        <div class="gantt-chart-container" id="external-gantt-chart-container">
+                            <div class="gantt-empty-state" id="external-gantt-empty">
+                                Adicione tarefas externas para visualizar a linha do tempo
+                            </div>
+                            <div class="gantt-wrapper" id="external-gantt-wrapper">
+                                <div class="gantt-header" id="external-gantt-header-dates">
+                                    <!-- Date columns will be injected here -->
+                                </div>
+                                <div class="gantt-rows" id="external-gantt-rows-container">
                                     <!-- Gantt rows will be injected here -->
                                 </div>
                             </div>
@@ -432,6 +494,13 @@
             </div>
             <form id="task-form">
                 <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <div class="form-group">
+                        <label for="task-type">Tipo de Demanda</label>
+                        <select id="task-type">
+                            <option value="interna" selected>Interna</option>
+                            <option value="externa">Externa</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="task-name">Atividade</label>
                         <input type="text" id="task-name" placeholder="Ex: Criação, Revisão, Tradução" required list="default-activities">
@@ -666,6 +735,10 @@ ON CONFLICT (id) DO NOTHING;</pre>
                     <div>
                         <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Status Atual</span>
                         <span id="detail-status">-</span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Tipo de Demanda</span>
+                        <span id="detail-type" style="text-transform: capitalize;">-</span>
                     </div>
                     <div style="grid-column: span 2; height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
                     <div>

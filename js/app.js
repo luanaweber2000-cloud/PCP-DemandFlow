@@ -13,8 +13,22 @@ let config = {
     lunchDuration: 60, // minutes
     weekdays: [1, 2, 3, 4, 5], // Monday to Friday (Sunday=0, Saturday=6)
     overtimes: [],
-    absences: []
+    absences: [],
+    
+    // Configurações externas independentes
+    extProdStart: '',
+    extShiftStart: '08:00',
+    extShiftEnd: '16:30',
+    extLunchStart: '12:00',
+    extLunchDuration: 60,
+    extWeekdays: [1, 2, 3, 4, 5],
+    extOvertimes: [],
+    extAbsences: []
 };
+
+// Controle de abas ativas
+let activeConfigType = 'interna'; // 'interna' ou 'externa'
+let activeTab = 'pcp-tab';        // 'pcp-tab', 'external-tab', 'completed-tab' ou 'cancelled-tab'
 
 // Temporary ID for modal operations
 let activeModalTaskId = null;
@@ -40,6 +54,7 @@ function initDefaultConfig() {
     // Default start date: today at 08:00
     const todayEight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0, 0);
     config.prodStart = formatDateTimeLocal(todayEight);
+    config.extProdStart = formatDateTimeLocal(todayEight);
     
     // Set initial input value in UI
     document.getElementById('prod-start').value = config.prodStart;
@@ -88,16 +103,25 @@ function formatFriendlyDuration(totalMins) {
 
 // --- LocalStorage & Data Retention ---
 function syncConfigToUI() {
-    if (config.prodStart) document.getElementById('prod-start').value = config.prodStart;
-    if (config.shiftStart) document.getElementById('shift-start').value = config.shiftStart;
-    if (config.shiftEnd) document.getElementById('shift-end').value = config.shiftEnd;
-    if (config.lunchStart) document.getElementById('lunch-start').value = config.lunchStart;
-    if (config.lunchDuration !== undefined) document.getElementById('lunch-duration').value = config.lunchDuration;
+    const isExt = activeConfigType === 'externa';
+    
+    const prodStartVal = isExt ? (config.extProdStart || config.prodStart) : config.prodStart;
+    const shiftStartVal = isExt ? (config.extShiftStart || '08:00') : config.shiftStart;
+    const shiftEndVal = isExt ? (config.extShiftEnd || '16:30') : config.shiftEnd;
+    const lunchStartVal = isExt ? (config.extLunchStart || '12:00') : config.lunchStart;
+    const lunchDurationVal = isExt ? (config.extLunchDuration !== undefined ? config.extLunchDuration : 60) : config.lunchDuration;
+    const weekdaysList = isExt ? (config.extWeekdays || [1, 2, 3, 4, 5]) : config.weekdays;
+    
+    if (prodStartVal) document.getElementById('prod-start').value = prodStartVal;
+    if (shiftStartVal) document.getElementById('shift-start').value = shiftStartVal;
+    if (shiftEndVal) document.getElementById('shift-end').value = shiftEndVal;
+    if (lunchStartVal) document.getElementById('lunch-start').value = lunchStartVal;
+    if (lunchDurationVal !== undefined) document.getElementById('lunch-duration').value = lunchDurationVal;
     
     // Update weekday buttons
     document.querySelectorAll('.day-btn').forEach(btn => {
         const dayNum = parseInt(btn.dataset.day);
-        if (config.weekdays.includes(dayNum)) {
+        if (weekdaysList.includes(dayNum)) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -257,49 +281,43 @@ function runSixMonthsRetention() {
 }
 
 // --- Schedule Recalculation Engine ---
-function reorganizeQueue() {
-    // 1. Separar tarefas ativas (iniciadas) - elas devem continuar no topo na ordem atual
-    const active = tasks.filter(t => t.status === 'iniciado');
+function calculateScheduleForType(type) {
+    const isExt = type === 'externa';
     
-    // 2. Pegar as demais tarefas (em fila ou pausadas)
-    const remaining = tasks.filter(t => t.status !== 'iniciado');
+    // Filtra as tarefas deste tipo
+    let list = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    if (list.length === 0) return;
     
-    // 3. Separar em tarefas com prazo fixo e tarefas normais
-    const withDeadline = remaining.filter(t => t.fixedDeadline);
-    const noDeadline = remaining.filter(t => !t.fixedDeadline);
+    // Reorganiza a fila deste tipo (priorizando prazo fixo)
+    list = reorganizeList(list);
     
-    // 4. Ordenar tarefas com prazo fixo por data (mais urgente primeiro)
-    withDeadline.sort((a, b) => new Date(a.fixedDeadline) - new Date(b.fixedDeadline));
+    // Pega as configurações adequadas
+    const cfg = {
+        prodStart: isExt ? (config.extProdStart || config.prodStart) : config.prodStart,
+        shiftStart: isExt ? (config.extShiftStart || '08:00') : config.shiftStart,
+        shiftEnd: isExt ? (config.extShiftEnd || '16:30') : config.shiftEnd,
+        lunchStart: isExt ? (config.extLunchStart || '12:00') : config.lunchStart,
+        lunchDuration: isExt ? (config.extLunchDuration !== undefined ? config.extLunchDuration : 60) : config.lunchDuration,
+        weekdays: isExt ? (config.extWeekdays || [1, 2, 3, 4, 5]) : config.weekdays,
+        overtimes: isExt ? (config.extOvertimes || []) : config.overtimes,
+        absences: isExt ? (config.extAbsences || []) : config.absences
+    };
     
-    // 5. Unir tudo novamente
-    tasks = [...active, ...withDeadline, ...noDeadline];
-}
-
-function recalculateSchedule() {
-    if (tasks.length === 0) {
-        return;
-    }
-
-    // Reorganiza a fila para priorizar os prazos fixos antes do cálculo de cronograma
-    reorganizeQueue();
-
-    // Determine the base starting time
-    let currentTime = new Date(config.prodStart);
+    let currentTime = new Date(cfg.prodStart);
     
-    // Rule: chain calculations after the last completed task if it exists and is newer than start config
-    if (completed.length > 0) {
-        const lastCompleted = completed[completed.length - 1];
+    // Chain calculations after the last completed task of this type if it exists and is newer than start config
+    const typeCompleted = completed.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    if (typeCompleted.length > 0) {
+        const lastCompleted = typeCompleted[typeCompleted.length - 1];
         const lastCompletedEnd = new Date(lastCompleted.actualEnd);
         if (lastCompletedEnd > currentTime) {
             currentTime = lastCompletedEnd;
         }
     }
-
+    
     const now = new Date();
-
-    // Iterate through all active tasks in the queue
-    tasks.forEach(task => {
-        // Paused tasks do not take production capacity (0 active time)
+    
+    list.forEach(task => {
         if (task.status === 'pausado') {
             task.plannedStart = null;
             task.plannedEnd = null;
@@ -307,25 +325,21 @@ function recalculateSchedule() {
             task.missesDeadline = false;
             return;
         }
-
-        // 1. Find the starting date/time adjusted to shifts and working days
-        currentTime = adjustToWorkingHours(currentTime, config);
         
-        // Se a data de solicitação for posterior ao início planejado, ajusta para iniciar apenas pós solicitação
+        currentTime = adjustToWorkingHours(currentTime, cfg);
+        
         if (task.requestedAt) {
             const reqDate = new Date(task.requestedAt);
             if (reqDate > currentTime) {
                 currentTime = reqDate;
-                currentTime = adjustToWorkingHours(currentTime, config);
+                currentTime = adjustToWorkingHours(currentTime, cfg);
             }
         }
         task.plannedStart = currentTime.toISOString();
-
-        // 2. Add duration minutes taking breaks and shifts into account
-        const plannedEnd = addWorkingMinutes(currentTime, task.duration, config);
+        
+        const plannedEnd = addWorkingMinutes(currentTime, task.duration, cfg);
         task.plannedEnd = plannedEnd.toISOString();
-
-        // 3. Check for delay: if started and exceeds estimated deadline
+        
         if (task.status === 'iniciado') {
             if (now > plannedEnd) {
                 task.isDelayed = true;
@@ -338,8 +352,7 @@ function recalculateSchedule() {
             task.isDelayed = false;
             currentTime = new Date(plannedEnd);
         }
-
-        // 4. Verifica se a tarefa vai estourar o prazo de entrega fixo estabelecido
+        
         if (task.fixedDeadline && task.plannedEnd) {
             const plannedEndVal = new Date(task.plannedEnd);
             const deadlineVal = new Date(task.fixedDeadline);
@@ -348,6 +361,24 @@ function recalculateSchedule() {
             task.missesDeadline = false;
         }
     });
+    
+    // Atualiza a lista correspondente na array global tasks preservando os outros tipos
+    const otherTasks = tasks.filter(t => (isExt ? t.type !== 'externa' : t.type === 'externa'));
+    tasks = [...list, ...otherTasks];
+}
+
+function reorganizeList(list) {
+    const active = list.filter(t => t.status === 'iniciado');
+    const remaining = list.filter(t => t.status !== 'iniciado');
+    const withDeadline = remaining.filter(t => t.fixedDeadline);
+    const noDeadline = remaining.filter(t => !t.fixedDeadline);
+    withDeadline.sort((a, b) => new Date(a.fixedDeadline) - new Date(b.fixedDeadline));
+    return [...active, ...withDeadline, ...noDeadline];
+}
+
+function recalculateSchedule() {
+    calculateScheduleForType('interna');
+    calculateScheduleForType('externa');
 }
 
 // Helper to get overtime for a given Date
@@ -535,33 +566,63 @@ function addWorkingMinutes(startDate, minutesToAdd, cfg) {
 
 // --- Event Listeners ---
 function setupEventListeners() {
+    // Alternância de abas de configurações
+    document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeConfigType = btn.dataset.type;
+            document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            syncConfigToUI();
+        });
+    });
+
     // Shift changes
     document.getElementById('prod-start').addEventListener('change', (e) => {
-        config.prodStart = e.target.value;
+        if (activeConfigType === 'externa') {
+            config.extProdStart = e.target.value;
+        } else {
+            config.prodStart = e.target.value;
+        }
         saveState();
         recalculateSchedule();
         renderAll();
     });
     document.getElementById('shift-start').addEventListener('change', (e) => {
-        config.shiftStart = e.target.value;
+        if (activeConfigType === 'externa') {
+            config.extShiftStart = e.target.value;
+        } else {
+            config.shiftStart = e.target.value;
+        }
         saveState();
         recalculateSchedule();
         renderAll();
     });
     document.getElementById('shift-end').addEventListener('change', (e) => {
-        config.shiftEnd = e.target.value;
+        if (activeConfigType === 'externa') {
+            config.extShiftEnd = e.target.value;
+        } else {
+            config.shiftEnd = e.target.value;
+        }
         saveState();
         recalculateSchedule();
         renderAll();
     });
     document.getElementById('lunch-start').addEventListener('change', (e) => {
-        config.lunchStart = e.target.value;
+        if (activeConfigType === 'externa') {
+            config.extLunchStart = e.target.value;
+        } else {
+            config.lunchStart = e.target.value;
+        }
         saveState();
         recalculateSchedule();
         renderAll();
     });
     document.getElementById('lunch-duration').addEventListener('change', (e) => {
-        config.lunchDuration = parseInt(e.target.value) || 0;
+        if (activeConfigType === 'externa') {
+            config.extLunchDuration = parseInt(e.target.value) || 0;
+        } else {
+            config.lunchDuration = parseInt(e.target.value) || 0;
+        }
         saveState();
         recalculateSchedule();
         renderAll();
@@ -571,15 +632,24 @@ function setupEventListeners() {
     document.querySelectorAll('.day-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const dayNum = parseInt(btn.dataset.day);
-            if (config.weekdays.includes(dayNum)) {
-                // Keep at least one working day
-                if (config.weekdays.length > 1) {
-                    config.weekdays = config.weekdays.filter(d => d !== dayNum);
+            const isExt = activeConfigType === 'externa';
+            if (!config.extWeekdays) config.extWeekdays = [1, 2, 3, 4, 5];
+            
+            let list = isExt ? config.extWeekdays : config.weekdays;
+            if (list.includes(dayNum)) {
+                if (list.length > 1) {
+                    list = list.filter(d => d !== dayNum);
                     btn.classList.remove('active');
                 }
             } else {
-                config.weekdays.push(dayNum);
+                list.push(dayNum);
                 btn.classList.add('active');
+            }
+            
+            if (isExt) {
+                config.extWeekdays = list;
+            } else {
+                config.weekdays = list;
             }
             saveState();
             recalculateSchedule();
@@ -636,8 +706,11 @@ function setupEventListeners() {
             duration = duration * 60;
         }
         
+        const type = document.getElementById('task-type').value;
+
         const newTask = {
             id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            type,
             name,
             material,
             requestor,
@@ -673,6 +746,7 @@ function setupEventListeners() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const targetTab = btn.dataset.tab;
+            activeTab = targetTab;
             
             // Switch tabs
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -680,6 +754,8 @@ function setupEventListeners() {
             
             btn.classList.add('active');
             document.getElementById(targetTab).classList.add('active');
+            
+            renderAll();
         });
     });
 
@@ -912,7 +988,13 @@ function updateTimePreview() {
 
 // --- Queue Controls & Drag & Drop ---
 function setupDragAndDrop() {
-    const listContainer = document.getElementById('queue-list');
+    setupDragAndDropForContainer('queue-list');
+    setupDragAndDropForContainer('external-queue-list');
+}
+
+function setupDragAndDropForContainer(containerId) {
+    const listContainer = document.getElementById(containerId);
+    if (!listContainer) return;
     const taskCards = listContainer.querySelectorAll('.task-card');
     
     taskCards.forEach(card => {
@@ -939,17 +1021,19 @@ function setupDragAndDrop() {
         });
 
         card.addEventListener('drop', () => {
-            // Rebuild queue based on final HTML order
             const renderedCards = [...listContainer.querySelectorAll('.task-card')];
-            const newTasksOrder = [];
+            const newTasksOrderOfActiveType = [];
             
             renderedCards.forEach(cardEl => {
                 const tId = cardEl.dataset.id;
                 const found = tasks.find(t => t.id === tId);
-                if (found) newTasksOrder.push(found);
+                if (found) newTasksOrderOfActiveType.push(found);
             });
             
-            tasks = newTasksOrder;
+            const isExt = containerId === 'external-queue-list';
+            const otherTasks = tasks.filter(t => (isExt ? t.type !== 'externa' : t.type === 'externa'));
+            tasks = [...otherTasks, ...newTasksOrderOfActiveType];
+            
             saveState();
             recalculateSchedule();
             renderAll();
@@ -959,11 +1043,21 @@ function setupDragAndDrop() {
 
 // Accessibility buttons: move up / down
 function moveTaskUp(taskId) {
-    const index = tasks.findIndex(t => t.id === taskId);
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const isExt = task.type === 'externa';
+    const list = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    
+    const index = list.findIndex(t => t.id === taskId);
     if (index > 0) {
-        const temp = tasks[index];
-        tasks[index] = tasks[index - 1];
-        tasks[index - 1] = temp;
+        const temp = list[index];
+        list[index] = list[index - 1];
+        list[index - 1] = temp;
+        
+        const otherTasks = tasks.filter(t => (isExt ? t.type !== 'externa' : t.type === 'externa'));
+        tasks = [...otherTasks, ...list];
+        
         saveState();
         recalculateSchedule();
         renderAll();
@@ -971,11 +1065,21 @@ function moveTaskUp(taskId) {
 }
 
 function moveTaskDown(taskId) {
-    const index = tasks.findIndex(t => t.id === taskId);
-    if (index !== -1 && index < tasks.length - 1) {
-        const temp = tasks[index];
-        tasks[index] = tasks[index + 1];
-        tasks[index + 1] = temp;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const isExt = task.type === 'externa';
+    const list = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    
+    const index = list.findIndex(t => t.id === taskId);
+    if (index !== -1 && index < list.length - 1) {
+        const temp = list[index];
+        list[index] = list[index + 1];
+        list[index + 1] = temp;
+        
+        const otherTasks = tasks.filter(t => (isExt ? t.type !== 'externa' : t.type === 'externa'));
+        tasks = [...otherTasks, ...list];
+        
         saveState();
         recalculateSchedule();
         renderAll();
@@ -1109,6 +1213,7 @@ function openDetailsModal(taskId) {
         statusText = 'Pausado';
     }
     document.getElementById('detail-status').textContent = statusText;
+    document.getElementById('detail-type').textContent = task.type === 'externa' ? 'Externa' : 'Interna';
     
     // Datas
     document.getElementById('detail-requested-at').textContent = task.requestedAt ? formatFriendlyDateTime(task.requestedAt) : '---';
@@ -1896,10 +2001,12 @@ function renderAll() {
 }
 
 function renderKPIs() {
+    const isExt = activeTab === 'external-tab';
+    const list = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    
     // 1. Final Delivery
-    const activeTasks = tasks.filter(t => t.status !== 'pausado');
+    const activeTasks = list.filter(t => t.status !== 'pausado');
     if (activeTasks.length > 0) {
-        // Last active task planned end date
         let maxEnd = null;
         activeTasks.forEach(t => {
             if (t.plannedEnd) {
@@ -1914,41 +2021,48 @@ function renderKPIs() {
     
     // 2. Active Backlog Time
     let totalMins = 0;
-    tasks.forEach(t => {
+    list.forEach(t => {
         if (t.status !== 'pausado') totalMins += t.duration;
     });
     document.getElementById('kpi-total-duration').textContent = formatFriendlyDuration(totalMins);
     
     // 3. Count Todo (Fila)
-    const todoCount = tasks.filter(t => t.status === 'fila').length;
+    const todoCount = list.filter(t => t.status === 'fila').length;
     document.getElementById('kpi-todo-count').textContent = `${todoCount} Trabalho${todoCount === 1 ? '' : 's'}`;
     
     // 4. Count In Progress (Iniciado)
-    const progressCount = tasks.filter(t => t.status === 'iniciado').length;
+    const progressCount = list.filter(t => t.status === 'iniciado').length;
     document.getElementById('kpi-inprogress-count').textContent = `${progressCount} Trabalho${progressCount === 1 ? '' : 's'}`;
     
     // 5. Count Paused (Pausado)
-    const pausedCount = tasks.filter(t => t.status === 'pausado').length;
+    const pausedCount = list.filter(t => t.status === 'pausado').length;
     document.getElementById('kpi-paused-count').textContent = `${pausedCount} Trabalho${pausedCount === 1 ? '' : 's'}`;
     
     // 6. Count Delayed (Em Atraso)
-    const delayedCount = tasks.filter(t => t.isDelayed || t.missesDeadline).length;
+    const delayedCount = list.filter(t => t.isDelayed || t.missesDeadline).length;
     document.getElementById('kpi-delayed-count').textContent = `${delayedCount} Trabalho${delayedCount === 1 ? '' : 's'}`;
 }
 
 function renderQueue() {
-    const listContainer = document.getElementById('queue-list');
-    const emptyState = document.getElementById('queue-empty');
+    const isExt = activeTab === 'external-tab';
+    const listContainer = document.getElementById(isExt ? 'external-queue-list' : 'queue-list');
+    const emptyState = document.getElementById(isExt ? 'external-queue-empty' : 'queue-empty');
+    
+    // Limpa a outra fila apenas por segurança
+    const inactiveContainer = document.getElementById(isExt ? 'queue-list' : 'external-queue-list');
+    if (inactiveContainer) inactiveContainer.innerHTML = '';
     
     listContainer.innerHTML = '';
     
-    if (tasks.length === 0) {
+    const list = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa'));
+    
+    if (list.length === 0) {
         emptyState.style.display = 'flex';
         return;
     }
     emptyState.style.display = 'none';
     
-    tasks.forEach((task, idx) => {
+    list.forEach((task, idx) => {
         const card = document.createElement('div');
         card.className = `task-card`;
         card.dataset.id = task.id;
@@ -2101,13 +2215,18 @@ function renderQueue() {
 }
 
 function renderGantt() {
-    const ganttContainer = document.getElementById('gantt-chart-container');
-    const ganttEmpty = document.getElementById('gantt-empty');
-    const ganttWrapper = document.getElementById('gantt-wrapper');
-    const ganttHeader = document.getElementById('gantt-header-dates');
-    const ganttRows = document.getElementById('gantt-rows-container');
+    const isExt = activeTab === 'external-tab';
+    const ganttContainer = document.getElementById(isExt ? 'external-gantt-chart-container' : 'gantt-chart-container');
+    const ganttEmpty = document.getElementById(isExt ? 'external-gantt-empty' : 'gantt-empty');
+    const ganttWrapper = document.getElementById(isExt ? 'external-gantt-wrapper' : 'gantt-wrapper');
+    const ganttHeader = document.getElementById(isExt ? 'external-gantt-header-dates' : 'gantt-header-dates');
+    const ganttRows = document.getElementById(isExt ? 'external-gantt-rows-container' : 'gantt-rows-container');
     
-    const activeTasks = tasks.filter(t => t.plannedStart && t.plannedEnd);
+    // Oculta o outro Gantt por segurança
+    const inactiveWrapper = document.getElementById(isExt ? 'gantt-wrapper' : 'external-gantt-wrapper');
+    if (inactiveWrapper) inactiveWrapper.style.display = 'none';
+    
+    const activeTasks = tasks.filter(t => (isExt ? t.type === 'externa' : t.type !== 'externa') && t.plannedStart && t.plannedEnd);
     
     if (activeTasks.length === 0) {
         ganttEmpty.style.display = 'flex';
@@ -2119,8 +2238,9 @@ function renderGantt() {
     ganttWrapper.style.display = 'flex';
     
     // Find absolute boundaries of the timeline range
-    let minDate = new Date(config.prodStart);
-    let maxDate = new Date(config.prodStart);
+    const baseStart = isExt ? (config.extProdStart || config.prodStart) : config.prodStart;
+    let minDate = new Date(baseStart);
+    let maxDate = new Date(baseStart);
     
     activeTasks.forEach(t => {
         const start = new Date(t.plannedStart);
