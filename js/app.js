@@ -1313,7 +1313,18 @@ function deleteTask(taskId) {
 let currentDetailsTaskId = null;
 
 function openDetailsModal(taskId) {
-    const task = tasks.find(t => t.id === taskId);
+    let task = tasks.find(t => t.id === taskId);
+    let isCompleted = false;
+    let isCancelled = false;
+    
+    if (!task) {
+        task = completed.find(t => t.id === taskId);
+        if (task) isCompleted = true;
+    }
+    if (!task) {
+        task = cancelled.find(t => t.id === taskId);
+        if (task) isCancelled = true;
+    }
     if (!task) return;
     
     currentDetailsTaskId = taskId;
@@ -1325,9 +1336,17 @@ function openDetailsModal(taskId) {
     document.getElementById('detail-qty').textContent = task.qty;
     document.getElementById('detail-duration').textContent = formatFriendlyDuration(task.duration);
     
+    // Reset labels defaults
+    document.getElementById('detail-start-label').textContent = "Início Estimado (Sistema)";
+    document.getElementById('detail-end-label').textContent = "Entrega Estimada (Sistema)";
+    
     // Status formatado
     let statusText = 'Não Iniciado';
-    if (task.status === 'iniciado') {
+    if (isCompleted) {
+        statusText = 'Concluído';
+    } else if (isCancelled) {
+        statusText = 'Cancelado';
+    } else if (task.status === 'iniciado') {
         statusText = task.isDelayed ? 'Iniciado (Atrasado)' : 'Iniciando';
     } else if (task.status === 'pausado') {
         statusText = 'Pausado';
@@ -1338,17 +1357,36 @@ function openDetailsModal(taskId) {
     // Datas
     document.getElementById('detail-requested-at').textContent = task.requestedAt ? formatFriendlyDateTime(task.requestedAt) : '---';
     document.getElementById('detail-planned-start').textContent = task.plannedStart ? formatFriendlyDateTime(task.plannedStart) : '---';
-    document.getElementById('detail-planned-end').textContent = task.plannedEnd ? formatFriendlyDateTime(task.plannedEnd) : '---';
+    
+    if (isCompleted) {
+        document.getElementById('detail-start-label').textContent = "Início Planejado";
+        document.getElementById('detail-end-label').textContent = "Concluído em";
+        document.getElementById('detail-planned-end').textContent = task.actualEnd ? formatFriendlyDateTime(task.actualEnd) : '---';
+    } else if (isCancelled) {
+        document.getElementById('detail-end-label').textContent = "Cancelado em";
+        document.getElementById('detail-planned-end').textContent = task.cancelledAt ? formatFriendlyDateTime(task.cancelledAt) : '---';
+    } else {
+        document.getElementById('detail-planned-end').textContent = task.plannedEnd ? formatFriendlyDateTime(task.plannedEnd) : '---';
+    }
     
     // Prazo Fixo
     document.getElementById('detail-fixed-deadline').textContent = task.fixedDeadline ? formatFriendlyDateTime(task.fixedDeadline) : 'Sem prazo fixo definido';
     
     // Descrição
-    document.getElementById('detail-description').textContent = task.description || 'Nenhuma descrição adicionada.';
+    if (isCancelled) {
+        document.getElementById('detail-description').textContent = (task.reason ? 'MOTIVO DO CANCELAMENTO: ' + task.reason + '\n\n' : '') + (task.description || 'Nenhuma descrição adicionada.');
+    } else {
+        document.getElementById('detail-description').textContent = task.description || 'Nenhuma descrição adicionada.';
+    }
     
     // Botão de fixar/desafixar prazo
     const container = document.getElementById('detail-fix-deadline-container');
     container.innerHTML = '';
+    
+    if (isCompleted || isCancelled) {
+        // Sem botão de prazo fixo para históricos
+        return;
+    }
     
     if (task.fixedDeadline) {
         // Se já tem prazo fixo, exibe botão para desafixar
@@ -2520,6 +2558,11 @@ function renderCompletedHistory() {
                 </button>
             </td>
         `;
+        row.style.cursor = 'pointer';
+        row.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.ctrl-btn')) return;
+            openDetailsModal(task.id);
+        });
         list.appendChild(row);
     });
 }
@@ -2556,6 +2599,11 @@ function renderCancelledHistory() {
                 </button>
             </td>
         `;
+        row.style.cursor = 'pointer';
+        row.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.ctrl-btn')) return;
+            openDetailsModal(task.id);
+        });
         list.appendChild(row);
     });
 }
