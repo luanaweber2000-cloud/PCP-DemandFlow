@@ -764,7 +764,15 @@ ON CONFLICT (id) DO NOTHING;</pre>
                     <div id="detail-description" style="padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; line-height: 1.45; word-break: break-word; min-height: 50px; max-height: 150px; overflow-y: auto; color: var(--text-secondary); white-space: pre-wrap;">-</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Histórico da Atividade</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Histórico da Atividade</span>
+                        <button type="button" id="btn-add-detail-comment" style="background: transparent; border: none; color: #3b82f6; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 4px;" title="Adicionar Comentário">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 12px; height: 12px;">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            + Comentário
+                        </button>
+                    </div>
                     <div id="detail-pause-history" style="padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.8rem; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-secondary);">
                         <span style="font-style: italic; color: var(--text-muted);">Nenhum histórico registrado nesta atividade.</span>
                     </div>
@@ -848,6 +856,29 @@ ON CONFLICT (id) DO NOTHING;</pre>
                 <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="closeReviewStartModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Iniciar Revisão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Comentário -->
+    <div class="modal-overlay" id="comment-modal">
+        <div class="modal card" style="max-width: 450px; width: 100%;">
+            <div class="modal-header">
+                <h3>Adicionar Comentário</h3>
+                <button class="modal-close" onclick="closeCommentModal()">&times;</button>
+            </div>
+            <form id="comment-form">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">O comentário será registrado no histórico da atividade com seu nome e data atual.</p>
+                    <div class="form-group">
+                        <label for="comment-text">Escreva seu comentário</label>
+                        <textarea id="comment-text" placeholder="Digite aqui sua observação ou anotação..." rows="4" required style="width: 100%; box-sizing: border-box;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCommentModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: bold;">Adicionar</button>
                 </div>
             </form>
         </div>

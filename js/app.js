@@ -33,6 +33,7 @@ let activeTab = 'pcp-tab';        // 'pcp-tab', 'external-tab', 'completed-tab' 
 // Temporary ID for modal operations
 let activeModalTaskId = null;
 let currentReviewTaskId = null;
+let currentCommentTaskId = null;
 let supabaseClient = null;
 
 // --- Initialization ---
@@ -1031,6 +1032,38 @@ function setupEventListeners() {
             closeReviewStartModal();
         });
     }
+
+    // Submissão do comentário da atividade
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('comment-text').value.trim();
+            if (!text) return;
+            
+            if (currentCommentTaskId) {
+                let task = tasks.find(t => t.id === currentCommentTaskId);
+                if (!task) task = completed.find(t => t.id === currentCommentTaskId);
+                if (!task) task = cancelled.find(t => t.id === currentCommentTaskId);
+                
+                if (task) {
+                    if (!task.pauseHistory) {
+                        task.pauseHistory = [];
+                    }
+                    const userEmail = await getCurrentUserEmail();
+                    task.pauseHistory.push({
+                        timestamp: new Date().toISOString(),
+                        reason: 'Comentário: ' + text,
+                        user: userEmail
+                    });
+                    
+                    saveState();
+                    openDetailsModal(currentCommentTaskId);
+                }
+            }
+            closeCommentModal();
+        });
+    }
 }
 
 // Live calculation preview
@@ -1222,6 +1255,21 @@ function toggleTaskReview(taskId) {
 function closeReviewStartModal() {
     document.getElementById('review-start-modal').classList.remove('active');
     currentReviewTaskId = null;
+}
+
+function openCommentModal(taskId) {
+    currentCommentTaskId = taskId;
+    document.getElementById('comment-text').value = '';
+    document.getElementById('comment-modal').classList.add('active');
+    setTimeout(() => {
+        const input = document.getElementById('comment-text');
+        if (input) input.focus();
+    }, 100);
+}
+
+function closeCommentModal() {
+    document.getElementById('comment-modal').classList.remove('active');
+    currentCommentTaskId = null;
 }
 
 function setTaskStatus(taskId, status) {
@@ -1491,6 +1539,14 @@ function openDetailsModal(taskId) {
         } else {
             historyContainer.innerHTML = `<span style="font-style: italic; color: var(--text-muted); font-size: 0.75rem;">Nenhuma pausa registrada nesta atividade.</span>`;
         }
+    }
+    
+    // Vincula o clique do botão de adicionar comentário
+    const btnAddComment = document.getElementById('btn-add-detail-comment');
+    if (btnAddComment) {
+        btnAddComment.onclick = () => {
+            openCommentModal(taskId);
+        };
     }
     
     document.getElementById('details-modal').classList.add('active');
