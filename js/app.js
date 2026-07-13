@@ -731,30 +731,37 @@ function setupEventListeners() {
             duration = duration * shiftMins;
         }
 
-        const newTask = {
-            id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-            type,
-            name,
-            material,
-            requestor,
-            qty,
-            unitTime,
-            unit,
-            duration: Math.round(duration),
-            status: 'fila', // Default status: fila
-            startedAt: null,
-            plannedStart: null,
-            plannedEnd: null,
-            fixedDeadline: fixedDeadline,
-            missesDeadline: false,
-            requestedAt: requestedAt,
-            description: description
-        };
-        
-        tasks.push(newTask);
-        saveState();
-        recalculateSchedule();
-        renderAll();
+        getCurrentUserEmail().then(userEmail => {
+            const newTask = {
+                id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                type,
+                name,
+                material,
+                requestor,
+                qty,
+                unitTime,
+                unit,
+                duration: Math.round(duration),
+                status: 'fila', // Default status: fila
+                startedAt: null,
+                plannedStart: null,
+                plannedEnd: null,
+                fixedDeadline: fixedDeadline,
+                missesDeadline: false,
+                requestedAt: requestedAt,
+                description: description,
+                pauseHistory: [{
+                    timestamp: new Date().toISOString(),
+                    reason: 'Atividade Criada',
+                    user: userEmail
+                }]
+            };
+            
+            tasks.push(newTask);
+            saveState();
+            recalculateSchedule();
+            renderAll();
+        });
         
         // Fecha o modal após adicionar
         closeTaskModal();
@@ -1241,16 +1248,32 @@ function setTaskStatus(taskId, status) {
     if (status === 'iniciado') {
         task.status = 'iniciado';
         task.startedAt = new Date().toISOString();
-        saveState();
-        recalculateSchedule();
-        renderAll();
+        if (!task.pauseHistory) task.pauseHistory = [];
+        getCurrentUserEmail().then(userEmail => {
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Atividade Iniciada',
+                user: userEmail
+            });
+            saveState();
+            recalculateSchedule();
+            renderAll();
+        });
     } else if (status === 'pausado') {
         openPauseModal(taskId);
     } else if (status === 'fila') {
         task.status = 'fila';
-        saveState();
-        recalculateSchedule();
-        renderAll();
+        if (!task.pauseHistory) task.pauseHistory = [];
+        getCurrentUserEmail().then(userEmail => {
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Atividade Re-enfileirada (Não Iniciada)',
+                user: userEmail
+            });
+            saveState();
+            recalculateSchedule();
+            renderAll();
+        });
     }
 }
 
@@ -1383,58 +1406,56 @@ function openDetailsModal(taskId) {
     const container = document.getElementById('detail-fix-deadline-container');
     container.innerHTML = '';
     
-    if (isCompleted || isCancelled) {
-        // Sem botão de prazo fixo para históricos
-        return;
+    if (!isCompleted && !isCancelled) {
+        if (task.fixedDeadline) {
+            // Se já tem prazo fixo, exibe botão para desafixar
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.style.borderColor = '#ef4444';
+            btn.style.color = '#ef4444';
+            btn.style.fontWeight = 'bold';
+            btn.style.padding = '8px 12px';
+            btn.style.fontSize = '0.85rem';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                Desafixar Prazo
+            `;
+            btn.onclick = () => {
+                unfixDeadline(task.id);
+                openDetailsModal(task.id); // Recarrega a exibição
+            };
+            container.appendChild(btn);
+        } else {
+            // Se não tem prazo fixo, exibe botão para fixar o prazo calculado
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.style.borderColor = '#fbbf24';
+            btn.style.color = '#fbbf24';
+            btn.style.fontWeight = 'bold';
+            btn.style.padding = '8px 12px';
+            btn.style.fontSize = '0.85rem';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                Fixar Prazo do Sistema
+            `;
+            btn.onclick = () => {
+                if (task.plannedEnd) {
+                    fixSystemDeadline(task.id);
+                    openDetailsModal(task.id); // Recarrega a exibição
+                } else {
+                    alert('Não há data de entrega calculada pelo sistema para fixar.');
+                }
+            };
+            container.appendChild(btn);
+        }
     }
     
-    if (task.fixedDeadline) {
-        // Se já tem prazo fixo, exibe botão para desafixar
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'btn btn-secondary';
-        btn.style.borderColor = '#ef4444';
-        btn.style.color = '#ef4444';
-        btn.style.fontWeight = 'bold';
-        btn.style.padding = '8px 12px';
-        btn.style.fontSize = '0.85rem';
-        btn.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
-                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-            Desafixar Prazo
-        `;
-        btn.onclick = () => {
-            unfixDeadline(task.id);
-            openDetailsModal(task.id); // Recarrega a exibição
-        };
-        container.appendChild(btn);
-    } else {
-        // Se não tem prazo fixo, exibe botão para fixar o prazo calculado
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'btn btn-secondary';
-        btn.style.borderColor = '#fbbf24';
-        btn.style.color = '#fbbf24';
-        btn.style.fontWeight = 'bold';
-        btn.style.padding = '8px 12px';
-        btn.style.fontSize = '0.85rem';
-        btn.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; margin-right: 4px;">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            Fixar Prazo do Sistema
-        `;
-        btn.onclick = () => {
-            if (task.plannedEnd) {
-                fixSystemDeadline(task.id);
-                openDetailsModal(task.id); // Recarrega a exibição
-            } else {
-                alert('Não há data de entrega calculada pelo sistema para fixar.');
-            }
-        };
-        container.appendChild(btn);
-    }
     // Renderiza o Histórico de Pausas
     const historyContainer = document.getElementById('detail-pause-history');
     if (historyContainer) {
@@ -1761,11 +1782,19 @@ function confirmCancellation() {
         removed.cancelledAt = Date.now();
         removed.reason = reason;
         
-        cancelled.push(removed);
-        saveState();
-        closeCancelModal();
-        recalculateSchedule();
-        renderAll();
+        if (!removed.pauseHistory) removed.pauseHistory = [];
+        getCurrentUserEmail().then(userEmail => {
+            removed.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Atividade Cancelada. Motivo: ' + reason,
+                user: userEmail
+            });
+            cancelled.push(removed);
+            saveState();
+            closeCancelModal();
+            recalculateSchedule();
+            renderAll();
+        });
     }
 }
 
@@ -1825,13 +1854,19 @@ function confirmCompletion() {
         task.completedAt = Date.now();
         task.deviation = deviation;
         
-        completed.push(task);
-        saveState();
-        closeCompleteModal();
-        
-        // Recalculate schedule (the engine will seed start time using this actualEnd if it is the latest completed date)
-        recalculateSchedule();
-        renderAll();
+        if (!task.pauseHistory) task.pauseHistory = [];
+        getCurrentUserEmail().then(userEmail => {
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Atividade Concluída',
+                user: userEmail
+            });
+            completed.push(task);
+            saveState();
+            closeCompleteModal();
+            recalculateSchedule();
+            renderAll();
+        });
     }
 }
 
