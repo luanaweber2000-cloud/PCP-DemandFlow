@@ -681,6 +681,7 @@ function setupEventListeners() {
         
         const name = document.getElementById('task-name').value.trim();
         const material = document.getElementById('material-name').value.trim();
+        const productCode = document.getElementById('product-code').value.trim();
         const requestor = document.getElementById('task-requestor').value.trim();
         const qty = parseInt(document.getElementById('quantity').value) || 1;
         const unitTime = parseFloat(document.getElementById('unit-time').value) || 1;
@@ -742,6 +743,7 @@ function setupEventListeners() {
                     task.type = type;
                     task.name = name;
                     task.material = material;
+                    task.productCode = productCode;
                     task.requestor = requestor;
                     task.qty = qty;
                     task.unitTime = unitTime;
@@ -772,6 +774,7 @@ function setupEventListeners() {
                     type,
                     name,
                     material,
+                    productCode,
                     requestor,
                     qty,
                     unitTime,
@@ -1438,6 +1441,7 @@ function openDetailsModal(taskId) {
     // Preenche as informações básicas
     document.getElementById('detail-name').textContent = task.name;
     document.getElementById('detail-material').textContent = task.material;
+    document.getElementById('detail-product-code').textContent = task.productCode || '---';
     document.getElementById('detail-requestor').textContent = task.requestor || '---';
     document.getElementById('detail-qty').textContent = task.qty;
     document.getElementById('detail-duration').textContent = formatFriendlyDuration(task.duration);
@@ -1640,6 +1644,7 @@ function openTaskModal() {
     // Reseta os campos para o padrão inicial limpo
     document.getElementById('task-name').value = '';
     document.getElementById('material-name').value = '';
+    document.getElementById('product-code').value = '';
     document.getElementById('task-requestor').value = '';
     document.getElementById('quantity').value = 1;
     document.getElementById('unit-time').value = 5;
@@ -1668,6 +1673,7 @@ function openEditTaskModal(taskId) {
     
     document.getElementById('task-name').value = task.name;
     document.getElementById('material-name').value = task.material;
+    document.getElementById('product-code').value = task.productCode || '';
     document.getElementById('task-requestor').value = task.requestor || '';
     document.getElementById('quantity').value = task.qty;
     document.getElementById('unit-time').value = task.unitTime;
@@ -2507,7 +2513,7 @@ function renderQueue() {
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                                 <line x1="9" y1="3" x2="9" y2="21"/>
                             </svg>
-                            ${task.material}
+                            ${task.material}${task.productCode ? ' (Cód: ' + task.productCode + ')' : ''}
                         </span>
                         <span>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px;">
@@ -2728,7 +2734,7 @@ function renderCompletedHistory() {
 
         row.innerHTML = `
             <td><strong>${task.name}</strong></td>
-            <td>${task.material}</td>
+            <td>${task.material}${task.productCode ? ' (Cód: ' + task.productCode + ')' : ''}</td>
             <td>${task.qty}</td>
             <td>${formatFriendlyDuration(task.duration)}</td>
             <td>${formatFriendlyDateTime(task.plannedEnd)}</td>
@@ -2770,7 +2776,7 @@ function renderCancelledHistory() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><strong>${task.name}</strong></td>
-            <td>${task.material}</td>
+            <td>${task.material}${task.productCode ? ' (Cód: ' + task.productCode + ')' : ''}</td>
             <td>${task.qty}</td>
             <td>${formatFriendlyDuration(task.duration)}</td>
             <td>${task.cancelledAt ? new Date(task.cancelledAt).toLocaleString('pt-BR') : '---'}</td>
