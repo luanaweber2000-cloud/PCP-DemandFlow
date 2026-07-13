@@ -2540,18 +2540,27 @@ function renderGantt() {
 
     // Render Headers (Day marks)
     ganttHeader.innerHTML = '';
+    
+    // Add spacer to align with row labels
+    const spacer = document.createElement('div');
+    spacer.style.width = '180px';
+    spacer.style.flexShrink = '0';
+    ganttHeader.appendChild(spacer);
+    
     // Draw day columns
     const totalDays = Math.ceil(timelineDuration / (24 * 60 * 60 * 1000)) || 1;
     const daysToShow = Math.max(totalDays, 3); // minimum 3 columns for visualization width
     
-    const dayWidthPercent = 100 / daysToShow;
+    // Set dynamic wrapper min-width so Gantt doesn't squeeze columns below 120px
+    ganttWrapper.style.minWidth = `${180 + (daysToShow * 120)}px`;
     
     // Generate date markers
     let currentMarkerDate = new Date(minDate);
     for (let i = 0; i < daysToShow; i++) {
         const dayCol = document.createElement('div');
         dayCol.className = 'gantt-time-col';
-        dayCol.style.width = `${dayWidthPercent}%`;
+        dayCol.style.flex = '1';
+        dayCol.style.flexShrink = '0';
         
         const dateStr = currentMarkerDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         const weekdayStr = currentMarkerDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
