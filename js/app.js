@@ -1221,7 +1221,22 @@ function setTaskStatus(taskId, status) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    const wasInReview = task.inReview;
     task.inReview = false;
+
+    if (wasInReview) {
+        if (!task.pauseHistory) {
+            task.pauseHistory = [];
+        }
+        getCurrentUserEmail().then(userEmail => {
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: `Revisão Concluída (Status alterado para: ${status === 'fila' ? 'Não Iniciado' : status === 'iniciado' ? 'Em Andamento' : 'Pausado'})`,
+                user: userEmail
+            });
+            saveState();
+        });
+    }
 
     if (status === 'iniciado') {
         task.status = 'iniciado';
@@ -1694,6 +1709,16 @@ function confirmCancellation() {
     if (taskIndex !== -1) {
         const removed = tasks.splice(taskIndex, 1)[0];
         
+        if (removed.inReview) {
+            removed.inReview = false;
+            if (!removed.pauseHistory) removed.pauseHistory = [];
+            removed.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Revisão Concluída (Demanda Cancelada)',
+                user: 'Sistema'
+            });
+        }
+        
         // Add cancel details
         removed.cancelledAt = Date.now();
         removed.reason = reason;
@@ -1737,6 +1762,16 @@ function confirmCompletion() {
     const taskIndex = tasks.findIndex(t => t.id === activeModalTaskId);
     if (taskIndex !== -1) {
         const task = tasks.splice(taskIndex, 1)[0];
+        
+        if (task.inReview) {
+            task.inReview = false;
+            if (!task.pauseHistory) task.pauseHistory = [];
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Revisão Concluída (Demanda Concluída)',
+                user: 'Sistema'
+            });
+        }
         
         const actualEnd = new Date(actualTimeVal);
         const plannedEnd = new Date(task.plannedEnd);
