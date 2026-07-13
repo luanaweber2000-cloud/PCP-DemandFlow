@@ -34,6 +34,8 @@ let activeTab = 'pcp-tab';        // 'pcp-tab', 'external-tab', 'completed-tab' 
 let activeModalTaskId = null;
 let currentReviewTaskId = null;
 let currentCommentTaskId = null;
+let isEditingTask = false;
+let editingTaskId = null;
 let supabaseClient = null;
 
 // --- Initialization ---
@@ -733,35 +735,68 @@ function setupEventListeners() {
         }
 
         getCurrentUserEmail().then(userEmail => {
-            const newTask = {
-                id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-                type,
-                name,
-                material,
-                requestor,
-                qty,
-                unitTime,
-                unit,
-                duration: Math.round(duration),
-                status: 'fila', // Default status: fila
-                startedAt: null,
-                plannedStart: null,
-                plannedEnd: null,
-                fixedDeadline: fixedDeadline,
-                missesDeadline: false,
-                requestedAt: requestedAt,
-                description: description,
-                pauseHistory: [{
-                    timestamp: new Date().toISOString(),
-                    reason: 'Atividade Criada',
-                    user: userEmail
-                }]
-            };
-            
-            tasks.push(newTask);
-            saveState();
-            recalculateSchedule();
-            renderAll();
+            if (isEditingTask && editingTaskId) {
+                const task = tasks.find(t => t.id === editingTaskId);
+                if (task) {
+                    // Update task fields
+                    task.type = type;
+                    task.name = name;
+                    task.material = material;
+                    task.requestor = requestor;
+                    task.qty = qty;
+                    task.unitTime = unitTime;
+                    task.unit = unit;
+                    task.duration = Math.round(duration);
+                    task.fixedDeadline = fixedDeadline;
+                    task.requestedAt = requestedAt;
+                    task.description = description;
+                    
+                    if (!task.pauseHistory) task.pauseHistory = [];
+                    task.pauseHistory.push({
+                        timestamp: new Date().toISOString(),
+                        reason: 'Informações da atividade atualizadas via edição',
+                        user: userEmail
+                    });
+                    
+                    saveState();
+                    recalculateSchedule();
+                    renderAll();
+                    // Se o modal de detalhes estiver aberto, atualiza ele também
+                    if (document.getElementById('details-modal').classList.contains('active')) {
+                        openDetailsModal(editingTaskId);
+                    }
+                }
+            } else {
+                const newTask = {
+                    id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                    type,
+                    name,
+                    material,
+                    requestor,
+                    qty,
+                    unitTime,
+                    unit,
+                    duration: Math.round(duration),
+                    status: 'fila', // Default status: fila
+                    startedAt: null,
+                    plannedStart: null,
+                    plannedEnd: null,
+                    fixedDeadline: fixedDeadline,
+                    missesDeadline: false,
+                    requestedAt: requestedAt,
+                    description: description,
+                    pauseHistory: [{
+                        timestamp: new Date().toISOString(),
+                        reason: 'Atividade Criada',
+                        user: userEmail
+                    }]
+                };
+                
+                tasks.push(newTask);
+                saveState();
+                recalculateSchedule();
+                renderAll();
+            }
         });
         
         // Fecha o modal após adicionar
@@ -1549,6 +1584,20 @@ function openDetailsModal(taskId) {
         };
     }
     
+    // Vincula o clique do botão de editar atividade
+    const btnEditTask = document.getElementById('btn-edit-detail-task');
+    if (btnEditTask) {
+        if (isCompleted || isCancelled) {
+            btnEditTask.style.display = 'none';
+        } else {
+            btnEditTask.style.display = 'flex';
+            btnEditTask.onclick = () => {
+                closeDetailsModal();
+                openEditTaskModal(taskId);
+            };
+        }
+    }
+    
     document.getElementById('details-modal').classList.add('active');
 }
 
@@ -1579,6 +1628,12 @@ function unfixDeadline(taskId) {
 
 // --- Task Creation Modal flow ---
 function openTaskModal() {
+    isEditingTask = false;
+    editingTaskId = null;
+    
+    document.getElementById('task-modal-title').textContent = "Nova Demanda";
+    document.getElementById('task-modal-submit-btn').textContent = "Adicionar à Fila";
+    
     const modal = document.getElementById('task-modal');
     modal.classList.add('active');
     
@@ -1589,6 +1644,7 @@ function openTaskModal() {
     document.getElementById('quantity').value = 1;
     document.getElementById('unit-time').value = 5;
     document.getElementById('time-unit').value = 'min';
+    document.getElementById('task-type').value = 'interna';
     document.getElementById('fixed-deadline').value = '';
     document.getElementById('task-description').value = '';
     
@@ -1597,6 +1653,34 @@ function openTaskModal() {
     
     updateTimePreview();
     
+    document.getElementById('task-name').focus();
+}
+
+function openEditTaskModal(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    isEditingTask = true;
+    editingTaskId = taskId;
+    
+    document.getElementById('task-modal-title').textContent = "Editar Demanda";
+    document.getElementById('task-modal-submit-btn').textContent = "Salvar Alterações";
+    
+    document.getElementById('task-name').value = task.name;
+    document.getElementById('material-name').value = task.material;
+    document.getElementById('task-requestor').value = task.requestor || '';
+    document.getElementById('quantity').value = task.qty;
+    document.getElementById('unit-time').value = task.unitTime;
+    document.getElementById('time-unit').value = task.unit;
+    document.getElementById('task-type').value = task.type;
+    document.getElementById('fixed-deadline').value = task.fixedDeadline ? formatDateTimeLocal(new Date(task.fixedDeadline)) : '';
+    document.getElementById('request-date').value = task.requestedAt ? formatDateTimeLocal(new Date(task.requestedAt)) : '';
+    document.getElementById('task-description').value = task.description || '';
+    
+    updateTimePreview();
+    
+    const modal = document.getElementById('task-modal');
+    modal.classList.add('active');
     document.getElementById('task-name').focus();
 }
 
