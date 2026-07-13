@@ -93,6 +93,19 @@ function formatFriendlyDate(dateStr) {
     return `${dateParts[2]}/${dateParts[1]} (${weekdayStr})`;
 }
 
+function getShiftDurationInMinutes(cfg) {
+    const [sh, sm] = (cfg.shiftStart || '08:00').split(':').map(Number);
+    const [eh, em] = (cfg.shiftEnd || '16:30').split(':').map(Number);
+    const lunchDur = cfg.lunchDuration !== undefined ? cfg.lunchDuration : 60;
+    
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    
+    let workMins = endMin - startMin - lunchDur;
+    if (workMins <= 0) workMins = 450;
+    return workMins;
+}
+
 // Convert minutes to friendly text: Xh YYm
 function formatFriendlyDuration(totalMins) {
     const hours = Math.floor(totalMins / 60);
@@ -700,13 +713,22 @@ function setupEventListeners() {
         // Captura o texto explicativo
         const description = document.getElementById('task-description').value.trim();
         
+        const type = document.getElementById('task-type').value;
+        const isExt = type === 'externa';
+
         // Calculate duration in minutes
         let duration = qty * unitTime;
         if (unit === 'hour') {
             duration = duration * 60;
+        } else if (unit === 'day') {
+            const cfg = {
+                shiftStart: isExt ? (config.extShiftStart || '08:00') : config.shiftStart,
+                shiftEnd: isExt ? (config.extShiftEnd || '16:30') : config.shiftEnd,
+                lunchDuration: isExt ? (config.extLunchDuration !== undefined ? config.extLunchDuration : 60) : config.lunchDuration
+            };
+            const shiftMins = getShiftDurationInMinutes(cfg);
+            duration = duration * shiftMins;
         }
-        
-        const type = document.getElementById('task-type').value;
 
         const newTask = {
             id: 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -741,6 +763,7 @@ function setupEventListeners() {
     document.getElementById('quantity').addEventListener('input', updateTimePreview);
     document.getElementById('unit-time').addEventListener('input', updateTimePreview);
     document.getElementById('time-unit').addEventListener('change', updateTimePreview);
+    document.getElementById('task-type').addEventListener('change', updateTimePreview);
 
     // Tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -981,6 +1004,16 @@ function updateTimePreview() {
     let duration = qty * unitTime;
     if (unit === 'hour') {
         duration = duration * 60;
+    } else if (unit === 'day') {
+        const type = document.getElementById('task-type').value;
+        const isExt = type === 'externa';
+        const cfg = {
+            shiftStart: isExt ? (config.extShiftStart || '08:00') : config.shiftStart,
+            shiftEnd: isExt ? (config.extShiftEnd || '16:30') : config.shiftEnd,
+            lunchDuration: isExt ? (config.extLunchDuration !== undefined ? config.extLunchDuration : 60) : config.lunchDuration
+        };
+        const shiftMins = getShiftDurationInMinutes(cfg);
+        duration = duration * shiftMins;
     }
     
     document.getElementById('task-time-preview').textContent = formatFriendlyDuration(duration);
