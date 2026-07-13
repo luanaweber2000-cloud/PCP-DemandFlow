@@ -387,10 +387,7 @@ function calculateScheduleForType(type) {
 function reorganizeList(list) {
     const active = list.filter(t => t.status === 'iniciado');
     const remaining = list.filter(t => t.status !== 'iniciado');
-    const withDeadline = remaining.filter(t => t.fixedDeadline);
-    const noDeadline = remaining.filter(t => !t.fixedDeadline);
-    withDeadline.sort((a, b) => new Date(a.fixedDeadline) - new Date(b.fixedDeadline));
-    return [...active, ...withDeadline, ...noDeadline];
+    return [...active, ...remaining];
 }
 
 function recalculateSchedule() {
