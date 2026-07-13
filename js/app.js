@@ -995,34 +995,33 @@ function setupEventListeners() {
         });
     }
 
-    // Submissão do formulário de feedback de retorno de revisão
-    const reviewForm = document.getElementById('review-return-form');
+    // Submissão do formulário de início de revisão
+    const reviewForm = document.getElementById('review-start-form');
     if (reviewForm) {
         reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const desc = document.getElementById('review-change-desc').value.trim();
-            if (!desc) return;
+            const responsible = document.getElementById('review-responsible').value.trim();
+            if (!responsible) return;
             
             if (currentReviewTaskId) {
                 const task = tasks.find(t => t.id === currentReviewTaskId);
                 if (task) {
-                    task.inReview = false;
+                    task.inReview = true;
                     if (!task.pauseHistory) {
                         task.pauseHistory = [];
                     }
                     const userEmail = await getCurrentUserEmail();
                     task.pauseHistory.push({
                         timestamp: new Date().toISOString(),
-                        reason: 'Revisão Concluída. Alteração: ' + desc,
+                        reason: 'Revisão: Iniciada (Responsável: ' + responsible + ')',
                         user: userEmail
                     });
                     
                     saveState();
-                    recalculateSchedule();
                     renderAll();
                 }
             }
-            closeReviewReturnModal();
+            closeReviewStartModal();
         });
     }
 }
@@ -1184,8 +1183,17 @@ function toggleTaskReview(taskId) {
     if (!task) return;
     
     if (!task.inReview) {
-        // Iniciar revisão
-        task.inReview = true;
+        // Iniciar revisão: abre modal para definir responsável
+        currentReviewTaskId = taskId;
+        document.getElementById('review-responsible').value = '';
+        document.getElementById('review-start-modal').classList.add('active');
+        setTimeout(() => {
+            const input = document.getElementById('review-responsible');
+            if (input) input.focus();
+        }, 100);
+    } else {
+        // Finalizar revisão: imediatamente muda para false e adiciona no histórico
+        task.inReview = false;
         
         if (!task.pauseHistory) {
             task.pauseHistory = [];
@@ -1194,26 +1202,18 @@ function toggleTaskReview(taskId) {
         getCurrentUserEmail().then(userEmail => {
             task.pauseHistory.push({
                 timestamp: new Date().toISOString(),
-                reason: 'Revisão: Iniciada',
+                reason: 'Revisão: Finalizada',
                 user: userEmail
             });
             saveState();
+            recalculateSchedule();
             renderAll();
         });
-    } else {
-        // Finalizar revisão: abre modal
-        currentReviewTaskId = taskId;
-        document.getElementById('review-change-desc').value = '';
-        document.getElementById('review-return-modal').classList.add('active');
-        setTimeout(() => {
-            const input = document.getElementById('review-change-desc');
-            if (input) input.focus();
-        }, 100);
     }
 }
 
-function closeReviewReturnModal() {
-    document.getElementById('review-return-modal').classList.remove('active');
+function closeReviewStartModal() {
+    document.getElementById('review-start-modal').classList.remove('active');
     currentReviewTaskId = null;
 }
 

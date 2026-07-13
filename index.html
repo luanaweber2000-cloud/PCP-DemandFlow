@@ -830,24 +830,24 @@ ON CONFLICT (id) DO NOTHING;</pre>
         </div>
     </div>
 
-    <!-- Modal de Feedback de Retorno da Revisão -->
-    <div class="modal-overlay" id="review-return-modal">
-        <div class="modal card" style="max-width: 450px; width: 100%;">
+    <!-- Modal de Início de Revisão -->
+    <div class="modal-overlay" id="review-start-modal">
+        <div class="modal card" style="max-width: 400px; width: 100%;">
             <div class="modal-header">
-                <h3>Finalizar Revisão</h3>
-                <button class="modal-close" onclick="closeReviewReturnModal()">&times;</button>
+                <h3>Iniciar Revisão</h3>
+                <button class="modal-close" onclick="closeReviewStartModal()">&times;</button>
             </div>
-            <form id="review-return-form">
+            <form id="review-start-form">
                 <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem;">
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Informe detalhadamente quais alterações foram realizadas durante o período de revisão desta demanda.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Informe quem é o responsável por realizar a revisão desta atividade.</p>
                     <div class="form-group">
-                        <label for="review-change-desc">O que foi alterado?</label>
-                        <textarea id="review-change-desc" placeholder="Ex: Ajustei as cores do banner principal e corrigi a grafia do título..." rows="4" required style="width: 100%; box-sizing: border-box;"></textarea>
+                        <label for="review-responsible">Nome do Responsável</label>
+                        <input type="text" id="review-responsible" placeholder="Ex: Ana Souza" required style="width: 100%; box-sizing: border-box;">
                     </div>
                 </div>
                 <div class="modal-footer" style="padding-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary" onclick="closeReviewReturnModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Confirmar Alterações</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeReviewStartModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Iniciar Revisão</button>
                 </div>
             </form>
         </div>
