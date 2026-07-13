@@ -32,6 +32,7 @@ let activeTab = 'pcp-tab';        // 'pcp-tab', 'external-tab', 'completed-tab' 
 
 // Temporary ID for modal operations
 let activeModalTaskId = null;
+let currentReviewTaskId = null;
 let supabaseClient = null;
 
 // --- Initialization ---
@@ -993,6 +994,37 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Submissão do formulário de feedback de retorno de revisão
+    const reviewForm = document.getElementById('review-return-form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const desc = document.getElementById('review-change-desc').value.trim();
+            if (!desc) return;
+            
+            if (currentReviewTaskId) {
+                const task = tasks.find(t => t.id === currentReviewTaskId);
+                if (task) {
+                    task.inReview = false;
+                    if (!task.pauseHistory) {
+                        task.pauseHistory = [];
+                    }
+                    const userEmail = await getCurrentUserEmail();
+                    task.pauseHistory.push({
+                        timestamp: new Date().toISOString(),
+                        reason: 'Revisão Concluída. Alteração: ' + desc,
+                        user: userEmail
+                    });
+                    
+                    saveState();
+                    recalculateSchedule();
+                    renderAll();
+                }
+            }
+            closeReviewReturnModal();
+        });
+    }
 }
 
 // Live calculation preview
@@ -1147,9 +1179,49 @@ function closePauseModal() {
     currentPauseTaskId = null;
 }
 
+function toggleTaskReview(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    if (!task.inReview) {
+        // Iniciar revisão
+        task.inReview = true;
+        
+        if (!task.pauseHistory) {
+            task.pauseHistory = [];
+        }
+        
+        getCurrentUserEmail().then(userEmail => {
+            task.pauseHistory.push({
+                timestamp: new Date().toISOString(),
+                reason: 'Revisão: Iniciada',
+                user: userEmail
+            });
+            saveState();
+            renderAll();
+        });
+    } else {
+        // Finalizar revisão: abre modal
+        currentReviewTaskId = taskId;
+        document.getElementById('review-change-desc').value = '';
+        document.getElementById('review-return-modal').classList.add('active');
+        setTimeout(() => {
+            const input = document.getElementById('review-change-desc');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function closeReviewReturnModal() {
+    document.getElementById('review-return-modal').classList.remove('active');
+    currentReviewTaskId = null;
+}
+
 function setTaskStatus(taskId, status) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
+
+    task.inReview = false;
 
     if (status === 'iniciado') {
         task.status = 'iniciado';
@@ -1329,11 +1401,11 @@ function openDetailsModal(taskId) {
                 
                 entry.innerHTML = `
                     <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
-                        <span>Pausado em: <strong>${timeStr}</strong></span>
+                        <span>Registrado em: <strong>${timeStr}</strong></span>
                         <span>Por: <strong>${item.user || 'Local'}</strong></span>
                     </div>
                     <div style="font-size: 0.8rem; color: var(--text-primary); font-weight: 500;">
-                        Motivo: <span style="font-weight: normal; color: var(--text-secondary);">${item.reason}</span>
+                        Descrição: <span style="font-weight: normal; color: var(--text-secondary);">${item.reason}</span>
                     </div>
                 `;
                 historyContainer.appendChild(entry);
@@ -2115,10 +2187,15 @@ function renderQueue() {
                 card.classList.add('status-delayed-card');
             }
         }
+        if (task.inReview) {
+            card.classList.add('status-review-card');
+        }
         
         // Status Pill HTML
         let statusPillHtml = '';
-        if (task.status === 'pausado') {
+        if (task.inReview) {
+            statusPillHtml = `<span class="status-pill revisao">Em Revisão</span>`;
+        } else if (task.status === 'pausado') {
             statusPillHtml = `<span class="status-pill pausado">Pausado</span>`;
         } else if (task.status === 'iniciado') {
             if (task.isDelayed) {
@@ -2225,6 +2302,11 @@ function renderQueue() {
                 <button class="ctrl-btn btn-concluir" onclick="openCompleteModal('${task.id}')" title="Marcar como Concluído">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </button>
+                <button class="ctrl-btn ${task.inReview ? 'active-revisar' : ''}" onclick="toggleTaskReview('${task.id}')" title="Revisar Trabalho">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                 </button>
                 <button class="ctrl-btn btn-cancelar" onclick="openCancelModal('${task.id}')" title="Cancelar Demanda">
